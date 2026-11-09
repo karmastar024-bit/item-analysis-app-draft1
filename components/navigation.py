@@ -1,5 +1,3 @@
-from base64 import b64encode
-from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
@@ -17,21 +15,14 @@ def go(key):
     st.switch_page(PAGES[key])
 
 
-@lru_cache(maxsize=1)
-def _theme():
-    # Embed the artwork so the theme also works under a hosted URL prefix.
-    artwork = ASSETS.parent / "static"
-    images = []
-    for name in ("valley", "classroom"):
-        data = b64encode((artwork / f"{name}.jpg").read_bytes()).decode("ascii")
-        images.append(f'--{name}-image: url("data:image/jpeg;base64,{data}");')
-    css = (ASSETS / "theme.css").read_text(encoding="utf-8")
-    return ":root{" + "".join(images) + "}" + css
-
-
 def header():
-    st.markdown(f"<style>{_theme()}</style>", unsafe_allow_html=True)
+    st.html(ASSETS / "theme.css")
+    artwork = ASSETS.parent / "static"
+    with st.container(key="valley_art"):
+        st.image(str(artwork / "valley.jpg"), width="stretch")
     with st.container(key="school_header"):
+        with st.container(key="classroom_art"):
+            st.image(str(artwork / "classroom.jpg"), width="stretch")
         with st.container(key="header_tools", horizontal=True, gap="xsmall", horizontal_alignment="right", vertical_alignment="center"):
             st.page_link(PAGES["home"], label=t("home"), icon=":material/home:", width="content")
             with st.popover(t("language"), icon=":material/language:"):
