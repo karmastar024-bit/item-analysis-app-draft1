@@ -4,8 +4,7 @@
     --edge: rgba(221, 235, 239, .24);
     --glass: linear-gradient(112deg, rgba(101, 122, 136, .34), rgba(31, 49, 63, .78));
     color: var(--ink);
-    background: linear-gradient(180deg, #0c1b2b99, #0c1b2b70 52%, #0b1b2bc7),
-                var(--valley-image) center / cover fixed, #102230;
+    background: #102230;
     font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
 }
 [data-testid="stHeader"] {background: #101e2ae8;}
@@ -19,8 +18,26 @@
     border: 1px solid #edf6ff4d;
     border-radius: 24px;
     box-shadow: inset 0 1px #ffffff35, 0 14px 40px #07101944;
-    background: linear-gradient(90deg, #0819216e, transparent 72%),
-                var(--classroom-image) center 58% / cover, #182b32;
+    isolation: isolate;
+    overflow: hidden;
+    background: #182b32;
+}
+.st-key-valley_art, .st-key-classroom_art {
+    inset: 0; pointer-events: none; z-index: -1; overflow: hidden;
+}
+.st-key-valley_art {position: fixed; z-index: 0;}
+[data-testid="stMainBlockContainer"] > div {isolation: isolate;}
+.st-key-classroom_art {position: absolute;}
+:is(.st-key-valley_art, .st-key-classroom_art) img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+:is(.st-key-valley_art, .st-key-classroom_art) div {position: static;}
+.st-key-valley_art::after, .st-key-classroom_art::after {
+    content: ""; position: absolute; inset: 0;
+}
+.st-key-valley_art::after {background: linear-gradient(#0c1b2b85, #0c1b2b60 52%, #0b1b2bc7);}
+.st-key-classroom_art::after {
+    background: linear-gradient(90deg, #08192195, transparent 72%);
 }
 .st-key-school_header .ia-title {
     font: 500 clamp(2.7rem, 5vw, 4.4rem)/1.02 Georgia, "Noto Serif Tibetan", serif;
@@ -108,7 +125,7 @@
     border-inline: 1px solid #d4e2ea24;
 }
 @media (max-width: 680px) {
-    .st-key-school_header {background-position: center, 65% 55%; min-height: 12rem;}
+    .st-key-school_header {min-height: 12rem;}
     .st-key-school_header .ia-title {text-shadow: 0 2px 10px #081624;}
     .st-key-school_header .ia-sub {text-shadow: 0 1px 6px #081624;}
 }
