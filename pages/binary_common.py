@@ -13,19 +13,22 @@ from utils.translations import t
 
 CFG = {
  "tf": dict(title="True or False", sample="sample_true_false.csv", col="Correct answer",
+            setup="On the **True or False** sheet, enter True or False in the gold **KEY** row above each statement.",
             help="Enter True or False (T/F also accepted).",
             doc=("Each statement is scored **1** if the response matches the key (True/T or False/F, "
                  "case-insensitive), otherwise **0**. Blank or invalid responses are scored 0."),
             de="Distractor efficiency is **not applicable** to True/False: there are only two options "
                "and no set of wrong options to evaluate."),
  "fill": dict(title="Fill in the Blanks", sample="sample_fill_blank.csv", col="Accepted answers (separate with |)",
-              help="Put every acceptable answer in the cell, separated by |  e.g. Paro | Paro Dzong",
+              setup="On the **Fill in the Blanks** sheet, enter accepted answers in the gold **KEY** row above each question. Separate alternatives with a vertical bar, as in `Paro | Paro Dzong`.",
+            help="Put every acceptable answer in the cell, separated by |  e.g. Paro | Paro Dzong",
               doc=("A response is correct (**1**) if, after normalization, it equals **any** accepted answer; "
                    "otherwise **0**. Normalization: case ignored (optional), extra spaces removed, punctuation "
                    "removed (optional)."),
               de="Distractor efficiency is **not applicable**: students write their own answers."),
  "matching": dict(title="Matching", sample="sample_matching.csv", col="Correct match",
-                  help="The letter or number the student should choose for this prompt.",
+                  setup="On the **Matching** sheet, enter the letter or number for each correct match in the gold **KEY** row above its prompt.",
+            help="The letter or number the student should choose for this prompt.",
                   doc=("**Each prompt is one item worth 1 point.** A response is correct only if it equals the "
                        "key (case-insensitive). Blank = incorrect. There is no partial credit within a prompt."),
                   de="Distractor efficiency is **not applicable** to matching items."),
@@ -46,8 +49,9 @@ def render(kind):
               {"tf": "true_false_template.xlsx", "fill": "fill_blank_template.xlsx",
                "matching": "matching_template.xlsx"}[kind])
     c1, c2 = st.columns([3, 1.4])
-    c1.caption("File layout: gold KEY row above Student ID, Name, Total Score, Q1, Q2, … headers. "
-               "Name and Total Score are optional; analysis uses item responses.")
+    c1.caption(f"Start with the Excel template. {cfg['setup']} "
+               "Enter each student’s **Student ID** and responses on one row. "
+               "**Name** and **Total Score** are optional.")
     if sample.exists():
         c2.download_button("Download Excel template", sample.read_bytes(), sample.name, width="stretch")
 

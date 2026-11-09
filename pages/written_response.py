@@ -22,9 +22,9 @@ def render():
                  "mean mark divided by the maximum mark for that item. Discrimination compares "
                  "the mean marks of the upper and lower groups on the same scale.")
     c1, c2 = st.columns([3, 1.4])
-    c1.caption("File layout: gold MAX row above Student ID, Name, Total Score, Q1, Q2, … headers. "
-               "Enter each item's maximum in MAX and awarded scores below the headers. "
-               "Name and Total Score are optional; analysis uses awarded item scores.")
+    c1.caption("Start with the Excel template. On the **Written** sheet, enter the maximum mark "
+               "for each question in the gold **MAX** row. On one row per student, enter their "
+               "**Student ID** and the marks they earned for each question. **Name** and **Total Score** are optional.")
     if SAMPLE.exists():
         c2.download_button("Download Excel template", SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
     up = st.file_uploader("Upload .csv or .xlsx", type=["csv", "xlsx"], key="up_written")

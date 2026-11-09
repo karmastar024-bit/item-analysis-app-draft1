@@ -77,9 +77,9 @@ def render():
     st.caption("Explore total scores and compare your class mean with a reference value.")
     template = Path(__file__).resolve().parent.parent / "templates" / "score_statistics_template.xlsx"
     left, right = st.columns([3, 1.4])
-    left.caption("File layout: Student ID, Student Name, Total Scores. "
-                 "Student Name is optional and is not used in the analysis. "
-                 "Replace the example rows with your class scores.")
+    left.caption("Start with the Excel template. On the **Total Scores** sheet, replace the example rows "
+                 "with your class scores. Enter each student’s **Student ID** and overall score under "
+                 "**Total Scores**. **Student Name** is optional.")
     if template.exists():
         right.download_button("Download Excel template", template.read_bytes(), template.name,
                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
