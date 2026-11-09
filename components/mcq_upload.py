@@ -20,8 +20,9 @@ def render_upload(sanitize):
                     "the upper and lower groups for discrimination. Difficulty, distractor "
                     "analysis and the displayed MCQ score use the MCQ responses.")
     c1, c2 = st.columns([3, 1.4])
-    c1.caption("File layout: gold KEY row above Student ID, Name, Total Score, Q1, Q2, … headers. "
-               "Keep the sheet named MCQ. Name and overall Total Score are required.")
+    c1.caption("Start with the Excel template. On the **MCQ** sheet, enter the correct answers "
+               "in the gold **KEY** row above Q1, Q2, and so on. For each student, enter their "
+               "**Student ID**, **Name**, overall **Total Score**, and response to each MCQ.")
     c2.download_button("Download Excel template", TEMPLATE.read_bytes(), "MCQ_Template.xlsx",
                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                        key="mcq_combined_template", width="stretch")
