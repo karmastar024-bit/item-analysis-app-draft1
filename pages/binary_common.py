@@ -1,15 +1,12 @@
 """Shared workflow for binary-scored item types (T/F, Fill, Matching) and
 the shared results display (also used by the written-response page)."""
 import hashlib
-import pandas as pd
+from components.item_results import section_results, show_section
 import streamlit as st
-from analysis.binary_analysis import analyze_binary, analysis_notes
+from analysis.binary_analysis import analyze_binary
 from analysis import scoring
-from components import charts, tables, explanations as ex
-from components.navigation import go
 from utils.data_validation import validate
-from utils.file_handlers import read_upload, build_pdf_report
-from utils.translations import t
+from utils.file_handlers import read_upload
 
 CFG = {
  "tf": dict(title="True or False", sample="sample_true_false.csv", col="Correct answer",
@@ -73,12 +70,7 @@ def render(kind):
     if st.session_state.get(res_key, {}).get("sig") != sig:
         st.session_state.pop(res_key, None)
 
-    st.subheader("Answer key")
-    kdf = pd.DataFrame({"Item": list(v.key), cfg["col"]: list(v.key.values())})
-    edited = st.data_editor(kdf, hide_index=True, disabled=["Item"], width="stretch",
-                            key=f"key_{kind}_{sig}", column_config={cfg["col"]: st.column_config.TextColumn(
-                                cfg["col"], help=cfg["help"], width="large")})
-    key = dict(zip(edited["Item"], edited[cfg["col"]].fillna("").astype(str)))
+    key = v.key
     opts = {}
     if kind == "fill":
         o1, o2 = st.columns(2)
@@ -86,8 +78,6 @@ def render(kind):
         opts["strip_punct"] = o2.checkbox("Ignore punctuation", False)
     elif kind == "matching":
         opts["ignore_case"] = st.checkbox("Ignore upper/lower case", True)
-    name = st.text_input("Assessment name (optional)", key=f"name_{kind}")
-
     if st.button("▶ Run analysis", type="primary", key=f"run_{kind}"):
         if any(not k.strip() for k in key.values()):
             st.error("❌ Every item needs an answer in the key."); return
@@ -100,49 +90,13 @@ def render(kind):
                 else: sc = scoring.score_matching(resp, key, **opts)
                 totals = v.totals
                 out = analyze_binary(sc, totals)
-                meta = {"Assessment": name or "(not named)", "Item type": cfg["title"],
-                        "Students": v.info["students"], "Items": v.info["items"]}
-                notes = analysis_notes(len(sc)) + [cfg["de"].replace("**", "")]
-                method = [ex.METHOD["Fill-in-the-Blank scoring"] if kind == "fill" else
-                          ex.METHOD["Matching scoring"] if kind == "matching" else
-                          "True/False responses scored 0/1 against the key.",
-                          ex.METHOD["Selected-response analysis (binary items)"], ex.RULES["True or False"]]
-                pdf = build_pdf_report(f"Item Analysis – {cfg['title']}", meta,
-                                       out[["Item", "Difficulty (p)", "Discrimination (D)", "Decision", "Reason"]],
-                                       notes, method, charts.pdf_pngs(out, "Difficulty (p)", "Discrimination (D)"))
-            st.session_state[res_key] = dict(sig=sig, df=out, totals=totals.tolist(), meta=meta,
-                                             notes=notes, pdf=pdf, n_items=sc.shape[1])
+                report = section_results(out, totals, cfg["title"])
+            st.session_state[res_key] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
+            st.session_state["stat_scores"] = totals.tolist()
+            st.session_state["stat_label"] = cfg["title"]
         except Exception:
             st.error("❌ The analysis could not be completed. Please check your file and answer key "
                      "against the Data Format Guide."); return
     r = st.session_state.get(res_key)
-    if r: show_results(r, f"{kind}_item_analysis", "Difficulty (p)", "Discrimination (D)", kind,
-                       max_total=r["n_items"])
-
-
-def show_results(r, base, pcol, dcol, key, max_total):
-    df = r["df"]
-    st.divider(); st.subheader("Results")
-    tables.decision_metrics(df)
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Table", "📊 Charts", "💬 Why each decision", "Download"])
-    with tab1:
-        tables.results_table(df)
-    with tab2:
-        a, b = st.columns(2)
-        a.altair_chart(charts.difficulty_hist(df, pcol), width="stretch")
-        b.altair_chart(charts.discrimination_hist(df, dcol), width="stretch")
-        c, d = st.columns(2)
-        c.altair_chart(charts.decision_bar(df), width="stretch")
-        d.altair_chart(charts.item_scatter(df, pcol, dcol), width="stretch")
-        st.altair_chart(charts.score_hist(r["totals"]), width="stretch")
-    with tab3:
-        tables.item_cards(df)
-    with tab4:
-        meta = pd.DataFrame(list(r["meta"].items()), columns=["Field", "Value"])
-        notes = pd.DataFrame({"Notes": r["notes"]})
-        tables.downloads(df, base, {"Assessment": meta, "Notes": notes}, r["pdf"], key=key)
-        st.caption("Downloads contain item-level results only; no student IDs or names are included.")
-    for n in r["notes"]: st.caption("• " + n)
-    if st.button("Use these total scores in Test Distribution", key=f"toS_{key}"):
-        st.session_state["stat_scores"] = r["totals"]; st.session_state["stat_label"] = r["meta"]["Item type"]
-        go("statistics")
+    if r:
+        show_section(r, f"{kind}_item_analysis.pdf")

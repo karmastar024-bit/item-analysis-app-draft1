@@ -73,14 +73,13 @@ and a KEY/MAX row below the headers remain supported.
 | Matching | `KEY` row | The matching letter/number, e.g. `C` |
 | Written | `MAX` row | Maximum score for the item; student cells hold the score awarded |
 
-MCQ requires student names and IDs. Total Score is MCQ + all sections and determines upper/lower discrimination groups.
-For other item types, Name and Total Score are optional and are not treated as questions.
-Their analysis and student totals use the item responses or awarded scores.
+Enter each student’s ID, Name and overall Total Score. Include all sections of the test in that score.
+For item discrimination, the analyzer ranks students by overall Total Score and compares the upper and lower 27%.
 
 Blank item responses score zero. Give each item an answer key or a maximum mark.
 
 For **Test distribution**, use the total-score template. It has three columns: Student ID,
-Student Name (optional) and Total Scores. Enter one numeric total per student.
+Student Name and Total Scores. Enter one name and one numeric overall score per student.
 """)
     st.code("\n".join((DATA / "sample_fill_blank.csv").read_text(encoding="utf-8").splitlines()[:4]), language="text")
     st.caption("Legacy CSV example (Fill in the Blanks): row 2 is the KEY row. Excel templates put KEY above the headers.")

@@ -1,17 +1,12 @@
 import hashlib
 from pathlib import Path
-import pandas as pd
+from components.item_results import section_results, show_section
 import streamlit as st
 from analysis.written_analysis import analyze_written
-from analysis.binary_analysis import analysis_notes
-from components import charts, explanations as ex
-from pages.binary_common import show_results
 from utils.data_validation import validate
-from utils.file_handlers import read_upload, build_pdf_report
-from utils.translations import t
+from utils.file_handlers import read_upload
 
 SAMPLE = Path(__file__).resolve().parent.parent / "templates" / "written_template.xlsx"
-PC, DC = "Difficulty (p = mean/max)", "Discrimination (D)"
 
 
 def render():
@@ -45,42 +40,17 @@ def render():
     if st.session_state.get("res_written", {}).get("sig") != sig:
         st.session_state.pop("res_written", None)
 
-    st.subheader("Maximum scores and rubric (optional)")
-    mdf = pd.DataFrame({"Item": list(v.max_scores), "Max score": list(v.max_scores.values()), "Rubric note": ""})
-    ed = st.data_editor(mdf, hide_index=True, disabled=["Item"], width="stretch", key=f"mx_{sig}",
-                        column_config={"Max score": st.column_config.NumberColumn(min_value=0.5, step=0.5),
-                                       "Rubric note": st.column_config.TextColumn(width="large")})
-    name = st.text_input("Assessment name (optional)", key="name_written")
     if st.button("▶ Run analysis", type="primary", key="run_written"):
-        mx = dict(zip(ed["Item"], ed["Max score"]))
-        if any(not m or m <= 0 for m in mx.values()):
-            st.error("❌ Every maximum score must be greater than 0."); return
-        over = [c for c in v.responses.columns if (v.responses[c] > mx[c]).any()]
-        if over:
-            st.error(f"❌ Some scores exceed the maximum for: {over}. Correct the data or raise the maximum."); return
+        mx = v.max_scores
         try:
             totals = v.totals
             out = analyze_written(v.responses, mx, totals)
-            rub = {r["Item"]: r["Rubric note"] for _, r in ed.iterrows() if str(r["Rubric note"]).strip()}
-            meta = {"Assessment": name or "(not named)", "Item type": "Written / Essay",
-                    "Students": v.info["students"], "Items": v.info["items"],
-                    "Total maximum": sum(mx.values())}
-            notes = analysis_notes(len(totals)) + [
-                "Distractor efficiency is not applicable to written items.",
-                "Difficulty is normalized (mean ÷ maximum). It is not a proportion of students correct."]
-            notes += [f"Rubric – {k}: {x}" for k, x in rub.items()]
-            method = [ex.METHOD["Constructed-response analysis (partial credit)"], ex.RULES["Written / Essay"]]
-            pdf = build_pdf_report("Item Analysis – Written / Essay", meta,
-                                   out[["Item", "Max Score", "Mean Score", PC, DC, "Decision", "Reason"]],
-                                   notes, method, charts.pdf_pngs(out, PC, DC))
-            st.session_state["res_written"] = dict(sig=sig, df=out, totals=totals.tolist(), meta=meta,
-                                                   notes=notes, pdf=pdf, n_items=len(mx),
-                                                   scores=v.responses, mx=mx)
+            report = section_results(out, totals, "Written response")
+            st.session_state["res_written"] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
+            st.session_state["stat_scores"] = totals.tolist()
+            st.session_state["stat_label"] = "Written response"
         except Exception:
             st.error("❌ The analysis could not be completed. Check your file against the Data Format Guide."); return
     r = st.session_state.get("res_written")
     if r:
-        show_results(r, "written_item_analysis", PC, DC, "written", r["meta"]["Total maximum"])
-        st.subheader("Score distribution for one item")
-        item = st.selectbox("Item", list(r["mx"]), key="wr_item")
-        st.altair_chart(charts.item_score_bars(r["scores"][item], r["mx"][item]), width="stretch")
+        show_section(r, "written_item_analysis.pdf")
