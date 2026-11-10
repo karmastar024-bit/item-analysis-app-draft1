@@ -15,6 +15,7 @@ class ValidationResult:
     warnings: list = field(default_factory=list)
     ids: pd.Series = None
     responses: pd.DataFrame = None   # students x items (raw)
+    totals: pd.Series = None
     key: dict = None                 # item -> key cell (str)
     max_scores: dict = None
     info: dict = field(default_factory=dict)
@@ -28,6 +29,31 @@ def _split_rows(df, special_label):
     idc = df.columns[0]
     is_special = df[idc].astype(str).str.strip().str.upper() == special_label
     return df[~is_special].copy(), (df[is_special].iloc[0] if is_special.any() else None)
+
+
+NAME_HEADERS = {"name", "student name"}
+TOTAL_HEADERS = {"total score", "total scores"}
+
+
+def column_label(column):
+    return " ".join(str(column).casefold().replace("_", " ").split())
+
+
+def overall_scores(students):
+    """Read the overall score in student-row order, excluding any KEY or MAX row."""
+    def required_column(aliases, label):
+        columns = [c for c in students if column_label(c) in aliases]
+        if len(columns) != 1:
+            raise ValueError(f"Include one {label} column with an entry for each student.")
+        return students[columns[0]]
+
+    names = required_column(NAME_HEADERS, "Name")
+    if names.fillna("").astype(str).str.strip().eq("").any():
+        raise ValueError("Enter a name for every student in the Name column.")
+    totals = pd.to_numeric(required_column(TOTAL_HEADERS, "Total Score"), errors="coerce")
+    if not np.isfinite(totals).all():
+        raise ValueError("Enter a numeric overall Total Score for every student.")
+    return totals.reset_index(drop=True)
 
 
 def validate(df: pd.DataFrame, kind: str) -> ValidationResult:
@@ -48,7 +74,11 @@ def validate(df: pd.DataFrame, kind: str) -> ValidationResult:
     special = MAX_LABEL if kind == "written" else KEY_LABEL
     body, special_row = _split_rows(df, special)
     idc = df.columns[0]
-    items = [c for c in df.columns[1:] if c.casefold() not in {"name", "total score"}]
+    try:
+        v.totals = overall_scores(body)
+    except ValueError as exc:
+        v.errors.append(str(exc))
+    items = [c for c in df.columns[1:] if column_label(c) not in NAME_HEADERS | TOTAL_HEADERS]
     if not items:
         v.errors.append("Include at least one item column, such as Q1.")
         return v
@@ -79,7 +109,7 @@ def validate(df: pd.DataFrame, kind: str) -> ValidationResult:
     if miss:
         pct = miss / resp.size * 100
         v.warnings.append(f"{miss} empty cell(s) ({pct:.1f}%). " +
-                          ("Missing scores are counted as 0 for totals and reported per item."
+                          ("Missing item marks are scored as 0 and reported per item."
                            if kind == "written" else "Blank responses are scored as incorrect."))
     empty_items = [c for c in items if resp[c].isna().all()]
     if empty_items:
