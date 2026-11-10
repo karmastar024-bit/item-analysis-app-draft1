@@ -7,10 +7,9 @@ from .discrimination import (discrimination_ul, discrimination_label,
 from .decision import decide, PLAIN
 
 
-def analyze_binary(scores: pd.DataFrame) -> pd.DataFrame:
+def analyze_binary(scores: pd.DataFrame, totals) -> pd.DataFrame:
     """scores: students x items of 0/1. Returns one row per item."""
     n = len(scores)
-    totals = scores.sum(axis=1).to_numpy(dtype=float)
     rows = []
     for c in scores.columns:
         x = scores[c].to_numpy(dtype=float)
@@ -36,7 +35,7 @@ def analysis_notes(n_students):
     notes = []
     g = group_size(n_students)
     notes.append(f"Upper and lower groups each contain {g} student(s) "
-                 f"(27% of {n_students}, minimum 1).")
+                 f"(ranked by overall Total Score, 27% of {n_students}, minimum 1).")
     if n_students < 30:
         notes.append("With fewer than 30 students, p and D are unstable. "
                      "Treat decisions as indicative, not final.")

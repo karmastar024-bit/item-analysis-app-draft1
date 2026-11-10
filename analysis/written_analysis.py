@@ -15,18 +15,18 @@ from .discrimination import (discrimination_ul, discrimination_label,
 from .decision import decide, PLAIN
 
 
-def analyze_written(scores: pd.DataFrame, max_scores: dict) -> pd.DataFrame:
+def analyze_written(scores: pd.DataFrame, max_scores: dict, totals) -> pd.DataFrame:
     n = len(scores)
     # Missing scores: treated as 0 for totals, but reported in 'Missing'.
     filled = scores.fillna(0)
-    totals = filled.sum(axis=1).to_numpy(dtype=float)
+    section_scores = filled.sum(axis=1).to_numpy(dtype=float)
     rows = []
     for c in scores.columns:
         m = float(max_scores[c])
         x = filled[c].to_numpy(dtype=float)
         p = difficulty_normalized(x, m)
         d = discrimination_ul(x, totals, m) if n >= 2 else float("nan")
-        r = corrected_item_total_r(x, totals) if scores.shape[1] > 1 else float("nan")
+        r = corrected_item_total_r(x, section_scores) if scores.shape[1] > 1 else float("nan")
         dec, reason = decide(p, d)
         rows.append({
             "Item": c, "Max Score": m,
