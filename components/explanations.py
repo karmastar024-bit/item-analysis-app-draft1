@@ -76,13 +76,13 @@ METHOD = {
  "Selected-response analysis (binary items)":
    "MCQ, True/False and Matching are scored 0/1. Fill-in-the-Blank answers are scored 0/1 after "
    "normalization against the accepted answers. Difficulty and discrimination use the formulas above; "
-   "groups are the top and bottom 27% by total score (ties broken by file order).",
+   "groups are the top and bottom 27% by overall test score (ties broken by file order).",
  "Constructed-response analysis (partial credit)":
    "Written responses can earn partial credit. Their difficulty index is the mean item score divided by the maximum mark. "
    "Discrimination is D = (mean upper − mean lower) ÷ maximum score, so it has the same −1…+1 scale "
-   "and the same 0.20 cut-off as binary items. The corrected item-total correlation "
+   "and the same 0.20 cut-off as binary items. Groups are ranked by overall test score. The corrected item-total correlation "
    "(item vs. total of the other items) is reported as supplementary evidence only. "
-   "Missing scores count as 0 in totals and are listed per item.",
+   "Missing item marks count as 0 for that item and are listed per item.",
  "Matching scoring":
    "Each prompt is one item worth 1 point. A response is correct only if it equals the key "
    "(case-insensitive). Blank = incorrect. Partial credit per matching set is not used.",
