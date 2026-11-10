@@ -36,7 +36,7 @@ STRINGS = {
         "footer_mission": "Designed to support educators in making evidence-based assessment decisions.",
         "privacy": ("🔒 Privacy: uploaded files are processed in memory for your current "
                     "session only. They are not saved, and no student data is sent to any "
-                    "external service. Please use student ID numbers, not names."),
+                    "external service."),
     },
     "dz": {
         "language": "སྐད་ཡིག", "menu": "དཀར་ཆག",
