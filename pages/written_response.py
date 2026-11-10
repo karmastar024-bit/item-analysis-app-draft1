@@ -24,7 +24,8 @@ def render():
     c1, c2 = st.columns([3, 1.4])
     c1.caption("Start with the Excel template. On the **Written** sheet, enter the maximum mark "
                "for each question in the gold **MAX** row. On one row per student, enter their "
-               "**Student ID** and the marks they earned for each question. **Name** and **Total Score** are optional.")
+               "**Student ID**, **Name**, overall **Total Score**, and marks for each question. "
+               "The overall score determines the upper and lower groups.")
     if SAMPLE.exists():
         c2.download_button("Download Excel template", SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
     up = st.file_uploader("Upload .csv or .xlsx", type=["csv", "xlsx"], key="up_written")
@@ -58,8 +59,8 @@ def render():
         if over:
             st.error(f"❌ Some scores exceed the maximum for: {over}. Correct the data or raise the maximum."); return
         try:
-            out = analyze_written(v.responses, mx)
-            totals = v.responses.fillna(0).sum(axis=1)
+            totals = v.totals
+            out = analyze_written(v.responses, mx, totals)
             rub = {r["Item"]: r["Rubric note"] for _, r in ed.iterrows() if str(r["Rubric note"]).strip()}
             meta = {"Assessment": name or "(not named)", "Item type": "Written / Essay",
                     "Students": v.info["students"], "Items": v.info["items"],

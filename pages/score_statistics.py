@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 from analysis import statistical_tests as T
 from components import charts, explanations as ex
+from utils.data_validation import overall_scores
 from utils.file_handlers import read_upload, df_to_csv_bytes
 from utils.translations import t
 
@@ -22,23 +23,11 @@ def score_input(label, key):
 
     up = st.file_uploader("Upload .csv or .xlsx", type=["csv", "xlsx"], key=f"up_{key}")
     if up is None: return None
-    try: df = read_upload(up)
-    except ValueError as e: st.error(f"❌ {e}"); return None
-    num = df.apply(pd.to_numeric, errors="coerce")
-    cols = [c for c in num.columns if num[c].notna().any()
-            and str(c).strip().casefold().replace("_", " ") not in
-            {"student id", "studentid", "id", "student name", "name"}]
-    preferred = next((c for c in cols if str(c).strip().casefold().replace("_", " ")
-                      in {"total scores", "total score", "score", "scores"}), None)
-    if preferred is not None:
-        cols.remove(preferred)
-        cols.insert(0, preferred)
-    if not cols: st.error("❌ No numeric column found in the file."); return None
-    col = st.selectbox("Column containing the scores", cols, key=f"col_{key}")
-    num[col] = num[col].replace([np.inf, -np.inf], np.nan)
-    miss = int(num[col].isna().sum())
-    if miss: st.warning(f"⚠️ {miss} non-numeric/empty value(s) in this column were ignored.")
-    return num[col].dropna().tolist()
+    try:
+        return overall_scores(read_upload(up)).tolist()
+    except ValueError as exc:
+        st.error(str(exc))
+        return None
 
 
 def _alt():
@@ -78,8 +67,8 @@ def render():
     template = Path(__file__).resolve().parent.parent / "templates" / "score_statistics_template.xlsx"
     left, right = st.columns([3, 1.4])
     left.caption("Start with the Excel template. On the **Total Scores** sheet, replace the example rows "
-                 "with your class scores. Enter each student’s **Student ID** and overall score under "
-                 "**Total Scores**. **Student Name** is optional.")
+                 "with your class scores. Enter each student’s **Student ID**, **Student Name**, and overall score under "
+                 "**Total Scores**.")
     if template.exists():
         right.download_button("Download Excel template", template.read_bytes(), template.name,
                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -50,8 +50,8 @@ def render(kind):
                "matching": "matching_template.xlsx"}[kind])
     c1, c2 = st.columns([3, 1.4])
     c1.caption(f"Start with the Excel template. {cfg['setup']} "
-               "Enter each student’s **Student ID** and responses on one row. "
-               "**Name** and **Total Score** are optional.")
+               "Enter each student’s **Student ID**, **Name**, overall **Total Score**, and responses on one row. "
+               "The overall score determines the upper and lower groups.")
     if sample.exists():
         c2.download_button("Download Excel template", sample.read_bytes(), sample.name, width="stretch")
 
@@ -98,8 +98,8 @@ def render(kind):
                 elif kind == "fill":
                     sc = scoring.score_fill_blank(resp, {c: scoring.split_accepted(k) for c, k in key.items()}, **opts)
                 else: sc = scoring.score_matching(resp, key, **opts)
-                out = analyze_binary(sc)
-                totals = sc.sum(axis=1)
+                totals = v.totals
+                out = analyze_binary(sc, totals)
                 meta = {"Assessment": name or "(not named)", "Item type": cfg["title"],
                         "Students": v.info["students"], "Items": v.info["items"]}
                 notes = analysis_notes(len(sc)) + [cfg["de"].replace("**", "")]
