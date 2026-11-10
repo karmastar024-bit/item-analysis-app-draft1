@@ -47,8 +47,8 @@ All Excel templates use `Student ID`, `Name`, `Total Score`, `Q1`, `Q2`, … .
 The gold KEY/MAX row sits above the navy column headers; student rows follow the headers.
 Student details are blue, overall scores teal, and response rows alternate pale blue and white.
 - **MCQ:** `templates/mcq_template.xlsx`, sheet `MCQ`. Name and Total Score are required. Total Score includes MCQ + all sections and is used for discrimination grouping.
-- **True/False, Fill, Matching:** corresponding Excel templates in `templates/` use KEY for answers (Fill: alternatives separated by `|`). Name and Total Score are optional metadata; analysis uses item responses.
-- **Written:** `templates/written_template.xlsx` uses MAX for each item's maximum score; student cells hold awarded scores. Name and Total Score are optional metadata.
+- **True/False, Fill, Matching:** corresponding Excel templates in `templates/` use KEY for answers (Fill: alternatives separated by `|`). Include Name and the overall Total Score used to rank students for the upper and lower groups.
+- **Written:** `templates/written_template.xlsx` uses MAX for each item's maximum score; student cells hold awarded scores. Include Name and the overall Total Score used to rank students for the upper and lower groups.
 Legacy CSV/Excel files with `StudentID` and KEY/MAX below the headers remain supported.
 
 ## Sample data
