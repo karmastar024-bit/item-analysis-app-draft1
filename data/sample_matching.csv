@@ -1,42 +1,42 @@
-StudentID,M1,M2,M3,M4,M5,M6
-KEY,C,A,E,B,D,F
-S001,C,,E,E,E,F
-S002,C,A,E,B,D,B
-S003,F,C,A,F,E,B
-S004,C,A,E,B,E,F
-S005,D,A,E,B,D,F
-S006,C,A,E,B,E,F
-S007,C,B,A,,A,F
-S008,C,C,E,B,C,F
-S009,E,A,F,B,C,F
-S010,D,E,E,A,D,F
-S011,F,A,,E,E,F
-S012,C,A,F,F,D,F
-S013,F,A,A,B,D,F
-S014,C,A,E,F,D,E
-S015,C,A,E,A,E,F
-S016,F,D,E,C,E,
-S017,C,F,E,F,A,F
-S018,A,A,E,B,B,B
-S019,C,C,E,B,F,F
-S020,A,F,A,C,A,C
-S021,D,D,A,C,D,B
-S022,B,A,E,B,A,F
-S023,C,A,C,E,D,F
-S024,D,,D,C,D,A
-S025,F,D,E,B,D,D
-S026,C,A,E,B,D,F
-S027,A,A,E,E,E,F
-S028,C,A,E,B,D,F
-S029,F,C,D,F,F,B
-S030,C,B,E,C,D,F
-S031,B,F,C,F,C,
-S032,C,A,E,B,D,F
-S033,C,A,E,B,C,F
-S034,C,A,E,B,,F
-S035,A,B,C,,C,A
-S036,C,A,E,B,C,F
-S037,B,E,E,D,A,F
-S038,B,B,E,F,D,B
-S039,C,D,D,D,F,C
-S040,C,A,E,B,D,F
+StudentID,Name,Total Score,M1,M2,M3,M4,M5,M6
+KEY,,,C,A,E,B,D,F
+S001,Student 01,40,C,,E,E,E,F
+S002,Student 02,39,C,A,E,B,D,B
+S003,Student 03,41,F,C,A,F,E,B
+S004,Student 04,43,C,A,E,B,E,F
+S005,Student 05,42,D,A,E,B,D,F
+S006,Student 06,44,C,A,E,B,E,F
+S007,Student 07,46,C,B,A,,A,F
+S008,Student 08,45,C,C,E,B,C,F
+S009,Student 09,47,E,A,F,B,C,F
+S010,Student 10,49,D,E,E,A,D,F
+S011,Student 11,48,F,A,,E,E,F
+S012,Student 12,50,C,A,F,F,D,F
+S013,Student 13,52,F,A,A,B,D,F
+S014,Student 14,51,C,A,E,F,D,E
+S015,Student 15,53,C,A,E,A,E,F
+S016,Student 16,55,F,D,E,C,E,
+S017,Student 17,54,C,F,E,F,A,F
+S018,Student 18,56,A,A,E,B,B,B
+S019,Student 19,58,C,C,E,B,F,F
+S020,Student 20,57,A,F,A,C,A,C
+S021,Student 21,59,D,D,A,C,D,B
+S022,Student 22,61,B,A,E,B,A,F
+S023,Student 23,60,C,A,C,E,D,F
+S024,Student 24,62,D,,D,C,D,A
+S025,Student 25,64,F,D,E,B,D,D
+S026,Student 26,63,C,A,E,B,D,F
+S027,Student 27,65,A,A,E,E,E,F
+S028,Student 28,67,C,A,E,B,D,F
+S029,Student 29,66,F,C,D,F,F,B
+S030,Student 30,68,C,B,E,C,D,F
+S031,Student 31,70,B,F,C,F,C,
+S032,Student 32,69,C,A,E,B,D,F
+S033,Student 33,71,C,A,E,B,C,F
+S034,Student 34,73,C,A,E,B,,F
+S035,Student 35,72,A,B,C,,C,A
+S036,Student 36,74,C,A,E,B,C,F
+S037,Student 37,76,B,E,E,D,A,F
+S038,Student 38,75,B,B,E,F,D,B
+S039,Student 39,77,C,D,D,D,F,C
+S040,Student 40,79,C,A,E,B,D,F

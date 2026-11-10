@@ -1,42 +1,42 @@
-StudentID,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8
-KEY,True,False,True,True,False,True,False,True
-S001,False,True,False,False,True,False,False,True
-S002,False,False,True,False,False,False,True,True
-S003,False,True,False,False,False,False,False,True
-S004,True,False,True,True,False,False,True,True
-S005,False,False,True,False,True,False,False,True
-S006,False,True,False,False,True,False,True,True
-S007,False,True,False,False,False,False,False,True
-S008,False,True,True,False,False,False,False,True
-S009,False,True,True,False,True,False,False,True
-S010,True,False,True,False,True,False,True,True
-S011,False,False,True,False,False,False,True,True
-S012,True,True,False,False,False,False,True,True
-S013,False,True,False,False,True,False,True,True
-S014,False,True,False,True,True,False,False,True
-S015,True,True,False,True,True,False,False,True
-S016,False,True,True,True,True,False,False,True
-S017,False,False,False,False,False,True,False,True
-S018,False,False,False,True,True,False,True,True
-S019,False,False,False,False,False,False,False,True
-S020,False,False,True,False,False,False,False,True
-S021,False,False,True,False,True,False,False,True
-S022,True,True,False,True,False,False,True,True
-S023,False,False,True,False,True,False,False,True
-S024,True,True,True,True,True,False,True,True
-S025,True,False,True,True,True,False,True,True
-S026,True,True,True,True,False,False,True,True
-S027,False,True,False,False,True,False,False,False
-S028,True,False,True,False,True,False,True,True
-S029,False,False,False,False,True,False,False,True
-S030,True,False,True,True,True,False,True,True
-S031,False,True,False,False,True,False,False,True
-S032,True,False,True,True,True,False,True,True
-S033,True,False,True,False,True,False,False,True
-S034,True,False,True,False,False,False,True,True
-S035,False,True,True,False,True,False,False,True
-S036,True,False,True,False,True,False,True,True
-S037,False,True,False,False,False,False,False,False
-S038,True,False,False,False,True,False,False,True
-S039,False,False,False,False,True,False,True,True
-S040,True,False,True,False,False,False,True,True
+StudentID,Name,Total Score,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8
+KEY,,,True,False,True,True,False,True,False,True
+S001,Student 01,40,False,True,False,False,True,False,False,True
+S002,Student 02,39,False,False,True,False,False,False,True,True
+S003,Student 03,41,False,True,False,False,False,False,False,True
+S004,Student 04,43,True,False,True,True,False,False,True,True
+S005,Student 05,42,False,False,True,False,True,False,False,True
+S006,Student 06,44,False,True,False,False,True,False,True,True
+S007,Student 07,46,False,True,False,False,False,False,False,True
+S008,Student 08,45,False,True,True,False,False,False,False,True
+S009,Student 09,47,False,True,True,False,True,False,False,True
+S010,Student 10,49,True,False,True,False,True,False,True,True
+S011,Student 11,48,False,False,True,False,False,False,True,True
+S012,Student 12,50,True,True,False,False,False,False,True,True
+S013,Student 13,52,False,True,False,False,True,False,True,True
+S014,Student 14,51,False,True,False,True,True,False,False,True
+S015,Student 15,53,True,True,False,True,True,False,False,True
+S016,Student 16,55,False,True,True,True,True,False,False,True
+S017,Student 17,54,False,False,False,False,False,True,False,True
+S018,Student 18,56,False,False,False,True,True,False,True,True
+S019,Student 19,58,False,False,False,False,False,False,False,True
+S020,Student 20,57,False,False,True,False,False,False,False,True
+S021,Student 21,59,False,False,True,False,True,False,False,True
+S022,Student 22,61,True,True,False,True,False,False,True,True
+S023,Student 23,60,False,False,True,False,True,False,False,True
+S024,Student 24,62,True,True,True,True,True,False,True,True
+S025,Student 25,64,True,False,True,True,True,False,True,True
+S026,Student 26,63,True,True,True,True,False,False,True,True
+S027,Student 27,65,False,True,False,False,True,False,False,False
+S028,Student 28,67,True,False,True,False,True,False,True,True
+S029,Student 29,66,False,False,False,False,True,False,False,True
+S030,Student 30,68,True,False,True,True,True,False,True,True
+S031,Student 31,70,False,True,False,False,True,False,False,True
+S032,Student 32,69,True,False,True,True,True,False,True,True
+S033,Student 33,71,True,False,True,False,True,False,False,True
+S034,Student 34,73,True,False,True,False,False,False,True,True
+S035,Student 35,72,False,True,True,False,True,False,False,True
+S036,Student 36,74,True,False,True,False,True,False,True,True
+S037,Student 37,76,False,True,False,False,False,False,False,False
+S038,Student 38,75,True,False,False,False,True,False,False,True
+S039,Student 39,77,False,False,False,False,True,False,True,True
+S040,Student 40,79,True,False,True,False,False,False,True,True
