@@ -82,19 +82,20 @@ def _binary(n=40, seed=0):
     cols["Reverse"]=(ability+rng.normal(0,.5,n)<0).astype(int)
     return pd.DataFrame(cols)
 def test_binary_pipeline():
-    r=analyze_binary(_binary()).set_index("Item")
+    scores = _binary()
+    r=analyze_binary(scores, scores.sum(axis=1)).set_index("Item")
     assert r.loc["Good","Decision"] in ("RETAIN","REVIEW")
     assert r.loc["AllRight","Decision"]=="DISCARD" and r.loc["AllWrong","Decision"]=="DISCARD"
     assert r.loc["Reverse","Decision"]=="DISCARD"
     assert r.loc["Easy","Decision"] in ("REVIEW","REVISE")
 def test_binary_small_sample():
-    r=analyze_binary(pd.DataFrame({"Q1":[1,0],"Q2":[1,0]})); assert len(r)==2
+    r=analyze_binary(pd.DataFrame({"Q1":[1,0],"Q2":[1,0]}), [80, 30]); assert len(r)==2
 def test_written_max_scores_and_missing():
     rng=np.random.default_rng(3); n=30; ab=rng.normal(size=n)
     df=pd.DataFrame({"Q1":np.clip(np.round(5*(ab+2)/4),0,5),"Q2":np.clip(np.round(10*(ab+2)/4),0,10),
                      "Q3":np.clip(np.round(15*(ab+2)/4),0,15)})
     df.loc[0,"Q2"]=np.nan
-    r=analyze_written(df,{"Q1":5,"Q2":10,"Q3":15}).set_index("Item")
+    r=analyze_written(df,{"Q1":5,"Q2":10,"Q3":15}, ab).set_index("Item")
     assert r.loc["Q2","Missing Scores"]==1
     assert all(r["Discrimination (D)"]>0.3)
     assert r.loc["Q3","Difficulty (p = mean/max)"]==pytest.approx(df["Q3"].mean()/15,abs=.01)

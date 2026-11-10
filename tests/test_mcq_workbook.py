@@ -54,7 +54,8 @@ def test_shared_templates_upload_and_analyze(template, kind, key, response):
     from analysis import scoring
     from analysis.binary_analysis import analyze_binary
     from analysis.written_analysis import analyze_written
-    raw = completed_template({"B10": "", "C10": ""}, template, key, response)
+    raw = completed_template({"D10": 0 if kind == "written" else "",
+                              "D13": key if kind == "written" else response}, template, key, response)
     class Upload:
         name = template + ".xlsx"
         def getvalue(self): return raw
@@ -65,8 +66,8 @@ def test_shared_templates_upload_and_analyze(template, kind, key, response):
     assert list(result.responses) == [f"Q{i}" for i in range(1, 11)]
     assert result.ids.iloc[0] == "0010"
     if kind == "written":
-        out = analyze_written(result.responses, result.max_scores)
-        assert out["Mean Score"].eq(3).all()
+        out = analyze_written(result.responses, result.max_scores, result.totals)
+        assert out["Mean Score"].iloc[1:].eq(3).all()
     else:
         if kind == "fill":
             scores = scoring.score_fill_blank(result.responses, {q: scoring.split_accepted(k) for q, k in result.key.items()})
@@ -74,8 +75,9 @@ def test_shared_templates_upload_and_analyze(template, kind, key, response):
             scores = scoring.score_true_false(result.responses, result.key)
         else:
             scores = scoring.score_matching(result.responses, result.key)
-        assert scores.eq(1).all().all()
-        out = analyze_binary(scores)
+        assert scores.iloc[:, 1:].eq(1).all().all()
+        out = analyze_binary(scores, result.totals)
+    assert out.iloc[0]["Discrimination (D)"] == -1
     assert len(out) == 10
 
 
@@ -137,8 +139,9 @@ def _upload_page(raw):
     class Upload:
         name = "assessment.xlsx"
         def getvalue(self): return st.session_state.get("test_raw", raw)
-    st.file_uploader = lambda *args, **kwargs: Upload()
-    render_upload(sanitize)
+    from unittest.mock import patch
+    with patch.object(st, "file_uploader", return_value=Upload()):
+        render_upload(sanitize)
 
 
 def test_single_upload_and_stale_results():

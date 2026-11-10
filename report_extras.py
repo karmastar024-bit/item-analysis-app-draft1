@@ -229,7 +229,7 @@ def _table(data, col_widths, header=True, align_center_from=0):
     return table
 
 
-def _distribution_chart(dist, width, height=170):
+def _distribution_chart(dist, width, height=170, xlabel="Score (number of correct answers)"):
 
     drawing = Drawing(width, height)
 
@@ -264,7 +264,7 @@ def _distribution_chart(dist, width, height=170):
         String(
             width / 2,
             8,
-            "Score (number of correct answers)",
+            xlabel,
             fontSize=8,
             textAnchor="middle",
         )
@@ -642,4 +642,35 @@ def create_pdf_report(results):
 
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
 
+    return buffer.getvalue()
+
+
+def create_section_pdf(title, metrics, bins, frame, note):
+    """Use the MCQ report typography, chart and table styles for other item types."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=15*mm, rightMargin=15*mm,
+                            topMargin=14*mm, bottomMargin=15*mm, title=f"{title} · Item analysis")
+    width = doc.width - 12
+    styles = _styles()
+    story = [Paragraph("Item Analysis Report", styles["title"]),
+             Paragraph(f"{escape(title)} · {date.today():%d %B %Y}", styles["subtitle"]),
+             Paragraph("Class results", styles["h2"])]
+    for row in (metrics[:3], metrics[3:]):
+        story.append(_table([[label for label, value in row], [value for label, value in row]],
+                            [width/3]*3))
+    story.extend([Paragraph("Score distribution", styles["h2"]),
+                  _distribution_chart({"bins": bins}, width, xlabel="Overall test score"),
+                  Paragraph("Item-by-item analysis", styles["h2"]), Paragraph(note, styles["note"])])
+    pcol = next(c for c in frame if c.startswith("Difficulty ("))
+    columns = ["Item", pcol, "Discrimination (D)", "Recommendation", "Why"]
+    rows = [["Item", "Difficulty", "Discrim.", "Decision", "Reason"]]
+    for item, difficulty, discrim, decision, reason in frame[columns].itertuples(index=False, name=None):
+        rows.append([Paragraph(escape(str(item)), styles["body"]), f"{difficulty:.2f}", f"{discrim:.2f}",
+                     decision, Paragraph(escape(str(reason)), styles["body"])])
+    table = _table(rows, [width*f for f in (.09, .11, .11, .15, .54)])
+    for i, row in enumerate(rows[1:], 1):
+        table.setStyle(TableStyle([("TEXTCOLOR", (3,i), (3,i), _REC_COLORS.get(row[3], _NAVY)),
+                                   ("FONTNAME", (3,i), (3,i), "Helvetica-Bold")]))
+    story.append(table)
+    doc.build(story)
     return buffer.getvalue()

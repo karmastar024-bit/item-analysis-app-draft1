@@ -11,9 +11,10 @@ def _script(page, filename, raw):
     class F:
         name = filename
         def getvalue(self): return raw
-    st.file_uploader = lambda *a, **k: F()
+    from unittest.mock import patch
     import importlib
-    importlib.import_module(f"pages.{page}").render()
+    with patch.object(st, "file_uploader", return_value=F()):
+        importlib.import_module(f"pages.{page}").render()
 
 def run(page, filename, raw, click=True):
     at = AppTest.from_function(_script, args=(page, filename, raw), default_timeout=90).run()
@@ -35,6 +36,8 @@ def test_sample_runs_and_produces_results(page, f):
     assert not at.exception, at.exception
     key = {"true_false":"res_tf","fill_blank":"res_fill","matching":"res_matching","written_response":"res_written"}[page]
     assert key in at.session_state, "no result stored"
+    totals = pd.read_csv(DATA / f)["Total Score"].dropna().tolist()
+    assert at.session_state[key]["totals"] == totals
     r = at.session_state[key]["df"]
     assert "Decision" in r and r["Decision"].isin(["RETAIN","REVIEW","REVISE","DISCARD"]).all()
     assert r["Reason"].str.len().min() > 10
@@ -78,6 +81,10 @@ CASES = {
  "one column":            ("x.csv", b"StudentID\nS1\nS2\n", "two columns"),
  "missing key row":       ("x.csv", csv(good()[good().StudentID!="KEY"]), "Missing"),
  "duplicate ids":         ("x.csv", csv(pd.concat([good(), good().iloc[[2]]])), "Duplicate StudentID"),
+ "missing name column":   ("x.csv", csv(good().drop(columns="Name")), "Name"),
+ "blank student name":    ("x.csv", csv(good().assign(Name=lambda d: d.Name.where(d.StudentID != "S001"))), "name for every student"),
+ "missing total column":  ("x.csv", csv(good().drop(columns="Total Score")), "Total Score"),
+ "invalid total score":   ("x.csv", csv(good().assign(**{"Total Score": "abc"})), "numeric overall Total Score"),
  "blank key cell":        ("x.csv", csv(good().assign(Q1=lambda d: d.Q1.where(d.StudentID!="KEY"))), "No answer key"),
  "bad key value":         ("x.csv", csv(good().assign(Q1=lambda d: d.Q1.where(d.StudentID!="KEY","maybe"))), "True/False"),
  "single student":        ("x.csv", csv(good().iloc[:2]), "At least 2 students"),

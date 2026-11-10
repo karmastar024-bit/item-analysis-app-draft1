@@ -72,5 +72,6 @@ def load_mcq_workbook(raw: bytes):
 def analyze_mcq_workbook(raw: bytes):
     analyzer = load_mcq_workbook(raw)
     return {"summary": analyzer.get_summary(),
+            "overall_scores": analyzer.student_data["provided_score"].tolist(),
             "items": analyzer.calculate_item_statistics(),
             "students": analyzer.rank_students(), "exam_info": analyzer.exam_info}

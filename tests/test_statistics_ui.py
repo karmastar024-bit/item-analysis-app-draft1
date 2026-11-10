@@ -82,9 +82,15 @@ def test_template_round_trip_and_score_column(monkeypatch):
     frame = read_upload(upload)
     assert list(frame.columns) == ["Student ID", "Student Name", "Total Scores"]
     monkeypatch.setattr(page.st, "file_uploader", lambda *a, **k: upload)
-    def select(label, columns, **kwargs):
-        assert columns[0] == "Total Scores"
-        assert "Student ID" not in columns
-        return columns[0]
-    monkeypatch.setattr(page.st, "selectbox", select)
     assert page.score_input("Scores", "test") == [52,68,74,81,65,90,77,61]
+
+    for contents in (
+        b"Student ID,Total Scores\n001,70\n",
+        b"Student ID,Name,Q1\n001,Student A,70\n",
+        b"Student ID,Name,Total Scores\n001,,70\n",
+        b"Student ID,Name,Total Scores\n001,Student A,inf\n",
+    ):
+        invalid = BytesIO(contents)
+        invalid.name = "scores.csv"
+        monkeypatch.setattr(page.st, "file_uploader", lambda *a, **k: invalid)
+        assert page.score_input("Scores", "test") is None
