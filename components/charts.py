@@ -1,5 +1,6 @@
 """Altair charts for the UI + matplotlib PNGs for the PDF report."""
 from io import BytesIO
+from utils.translations import t
 import altair as alt
 import numpy as np
 import pandas as pd
@@ -56,19 +57,46 @@ def item_scatter(df, pcol, dcol):
     return (base + rules).properties(title="Each item: difficulty vs discrimination", height=300)
 
 
-def score_hist(values, title="Distribution of total scores", x_title="Total score"):
-    d = pd.DataFrame({"score": values})
-    n = max(5, min(20, int(np.sqrt(len(d))) + 3))
-    return (alt.Chart(d).mark_bar(color=NAVY).encode(
-        x=alt.X("score:Q", bin=alt.Bin(maxbins=n), title=x_title),
-        y=alt.Y("count()", title="Students")).properties(title=title, height=260))
+def score_bins(scores):
+    counts = pd.Series(scores).value_counts().sort_index()
+    if len(counts) <= 16:
+        return [(f"{score:g}", int(n)) for score, n in counts.items()]
+    values = counts.index.to_numpy(dtype=float)
+    if np.all(values == np.floor(values)):
+        first, last = int(values.min()), int(values.max())
+        width = max(1, (last - first + 8) // 8)
+        return [(f"{lo}–{min(lo + width - 1, last)}", int(counts.loc[lo:lo + width - 1].sum()))
+                for lo in range(first, last + 1, width)]
+    counts, edges = np.histogram(scores, bins=8)
+    return [(f"{lo:g}–{hi:g}", int(n)) for lo, hi, n in zip(edges, edges[1:], counts)]
 
 
-def boxplot(values, title="Box plot of total scores", label="Scores"):
-    d = pd.DataFrame({"score": values, "g": label})
-    return (alt.Chart(d).mark_boxplot(color=NAVY, extent=1.5).encode(
-        y=alt.Y("score:Q", title="Score"), x=alt.X("g:N", title=None))
-        .properties(title=title, height=260, width=160))
+def glass_chart(chart):
+    return (chart.properties(height=260, background="transparent")
+            .configure_view(stroke=None)
+            .configure_axis(labelColor="#e6efef", titleColor="#fff3da", gridColor="#647889",
+                            gridOpacity=.34, domainColor="#859da7", labelFontSize=12,
+                            titleFontSize=13, labelFont="IA Tibetan, sans-serif", titleFont="IA Tibetan, sans-serif"))
+
+
+def score_bars(bins, score_label):
+    chart = alt.Chart(pd.DataFrame(bins, columns=["Score", "Students"])).mark_bar(
+        color="#89d8cb", cornerRadiusTopLeft=4, cornerRadiusTopRight=4
+    ).encode(
+        x=alt.X("Score:N", sort=None, title=t(score_label), axis=alt.Axis(labelAngle=0)),
+        y=alt.Y("Students:Q", title=t("Students"), axis=alt.Axis(tickMinStep=1)),
+        tooltip=[alt.Tooltip("Score:N", title=t("Score")), alt.Tooltip("Students:Q", title=t("Students"))]
+    )
+    return glass_chart(chart)
+
+
+def boxplot(values):
+    frame = pd.DataFrame({"score": values})
+    chart = alt.Chart(frame).mark_boxplot(
+        extent=1.5, size=44, box={"fill": "#89d8cb"}, median={"color": "#102936"},
+        rule={"color": "#d1e3e1"}, ticks={"color": "#d1e3e1"}, outliers={"color": "#edc581"}
+    ).encode(y=alt.Y("score:Q", title=t("Overall test score"), scale=alt.Scale(zero=False)))
+    return glass_chart(chart)
 
 
 def grouped_boxplot(groups: dict, title="Box plot by group"):

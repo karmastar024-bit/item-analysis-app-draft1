@@ -146,3 +146,38 @@
 .ia-result-table td:last-child {min-width:16rem;}
 .ia-result-table td:first-child {font-weight:600;color:#abe7dd;}
 .ia-result-table:focus-visible {outline:2px solid #edc581;}
+
+/* Shared interaction colours: teal for actions, warm brass for downloads. */
+.stApp {
+    --action:#a3e1d2; --action-ink:#102e32; --brass:#f0d29d;
+    --reading-font:"Source Sans 3","Segoe UI",system-ui,"IA Tibetan","Kailasa",sans-serif;
+    --display-font:Georgia,"IA Tibetan","Kailasa",serif;
+    font-family:var(--reading-font);
+}
+.stApp :is(h2,h3), .st-key-school_header .ia-title,
+.st-key-assessment_list button p strong {font-family:var(--display-font);}
+.stApp :is(p,label,button,input,select,td,th), .st-key-assessment_list button p {font-family:var(--reading-font);}
+.stApp :is(button[data-testid="stBaseButton-primary"],button[kind="primary"]) {
+    background:var(--action);color:var(--action-ink);border:1px solid #bbeee4;
+    font-weight:650;border-radius:.8rem;min-height:2.8rem;padding-inline:1.25rem;
+}
+.stApp [data-testid="stDownloadButton"] button {background:#243645;color:var(--brass);border:1px solid #ad966f;min-height:2.65rem;}
+.stApp [data-testid="stDownloadButton"] button[kind="primary"] {background:var(--brass);color:#29251c;}
+.stApp [data-testid="stDownloadButton"] button:hover {border-color:#ffe8b9;box-shadow:0 0 0 1px #f0d29d70;}
+.stApp [data-testid="stMetricValue"] {font-variant-numeric:tabular-nums;letter-spacing:-.025em;}
+.stApp [data-testid="stMetric"] {border-top:2px solid #86beb4;}
+.st-key-assessment_list [data-testid="stButton"] button {background:linear-gradient(112deg,#354d5edb,#192e3ce8);}
+.st-key-assessment_list [data-testid="stButton"] button:hover {border-color:#a3e1d2;background:linear-gradient(112deg,#395a65f0,#203847f0);box-shadow:inset 3px 0 #a3e1d2;}
+.stApp .ia-result-table tbody tr:hover {background:#9adbd119;}
+.stApp .ia-result-table :is(th,td) {font-variant-numeric:tabular-nums;}
+.ia-footer {border-top:2px solid #a98e68;color:#e1e9e9;}
+.ia-footer a {color:#f6d9a8;}
+.stApp .ia-title,.stApp .ia-sub {text-shadow:0 2px 14px #091520;}
+.stApp :focus-visible {outline-offset:3px;}
+.stApp:has(.ia-title[lang="dz"]) :is(p,label,h2,h3,button,th,td,.ia-title) {line-height:1.85;letter-spacing:normal;}
+.stApp:has(.ia-title[lang="dz"]) .ia-title {font-size:clamp(2rem,4.5vw,3.6rem);}
+.stApp:has(.ia-title[lang="dz"]) .st-key-assessment_list button p strong {line-height:1.75;letter-spacing:normal;}
+@media(max-width:680px) {
+    .stApp [data-testid="stMetric"] {padding:.75rem 1rem;}
+    .stApp [data-testid="stDownloadButton"] button {max-width:100%;}
+}

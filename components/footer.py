@@ -15,5 +15,5 @@ def footer():
         {t('footer_tool')}<br>
         <em>{t('footer_mission')}</em><br>
         <span style="font-size:12px">v{VERSION} · <a href="{GITHUB}" target="_blank">GitHub</a> ·
-        <a href="{GITHUB}/issues" target="_blank">Feedback</a></span></div>""",
+        <a href="{GITHUB}/issues" target="_blank">{t("feedback")}</a></span></div>""",
         unsafe_allow_html=True)
