@@ -1,5 +1,6 @@
 """Shared workflow for binary-scored item types (T/F, Fill, Matching) and
 the shared results display (also used by the written-response page)."""
+from utils.translations import t, current_lang
 import hashlib
 from components.item_results import section_results, show_section
 import streamlit as st
@@ -38,21 +39,23 @@ def _sig(up):
 
 def render(kind):
     cfg = CFG[kind]; res_key = f"res_{kind}"
-    st.header(cfg["title"])
-    st.caption(cfg["help"])
-    with st.expander("How is this item type scored?"):
-        st.markdown(cfg["doc"]); st.markdown(cfg["de"])
+    st.header(t(kind, fallback=cfg["title"]))
+    st.caption(t("desc_" + kind, fallback=cfg["help"]))
+    with st.expander(t("How is this item type scored?")):
+        st.markdown(t("score_binary", fallback=cfg["doc"]))
+        if current_lang() == "en":
+            st.markdown(cfg["de"])
     sample = (__import__("pathlib").Path(__file__).resolve().parent.parent / "templates" /
               {"tf": "true_false_template.xlsx", "fill": "fill_blank_template.xlsx",
                "matching": "matching_template.xlsx"}[kind])
     c1, c2 = st.columns([3, 1.4])
-    c1.caption(f"Start with the Excel template. {cfg['setup']} "
+    c1.caption(t("setup_" + kind) + " " + t("setup_students") if current_lang() == "dz" else f"Start with the Excel template. {cfg['setup']} "
                "Enter each student’s **Student ID**, **Name**, overall **Total Score**, and responses on one row. "
                "The overall score determines the upper and lower groups.")
     if sample.exists():
-        c2.download_button("Download Excel template", sample.read_bytes(), sample.name, width="stretch")
+        c2.download_button(t("Download Excel template"), sample.read_bytes(), sample.name, width="stretch")
 
-    up = st.file_uploader("Upload .csv or .xlsx", type=["csv", "xlsx"], key=f"up_{kind}")
+    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key=f"up_{kind}")
     if up is None:
         return
     try:
@@ -62,9 +65,9 @@ def render(kind):
     v = validate(df, kind)
     for w in v.warnings: st.warning("⚠️ " + w)
     if not v.ok:
-        for e in v.errors: st.error("❌ " + e)
+        for e in v.errors: st.error(t(e))
         st.caption("Fix the problems above and upload the file again."); return
-    st.success(f"File checked: {v.info['students']} students, {v.info['items']} items.")
+    st.success(t("checked", fallback="File checked: {students} students, {items} items.").format(**v.info))
 
     sig = _sig(up)
     if st.session_state.get(res_key, {}).get("sig") != sig:
@@ -74,11 +77,11 @@ def render(kind):
     opts = {}
     if kind == "fill":
         o1, o2 = st.columns(2)
-        opts["ignore_case"] = o1.checkbox("Ignore upper/lower case", True)
-        opts["strip_punct"] = o2.checkbox("Ignore punctuation", False)
+        opts["ignore_case"] = o1.checkbox(t("Ignore upper/lower case"), True)
+        opts["strip_punct"] = o2.checkbox(t("Ignore punctuation"), False)
     elif kind == "matching":
-        opts["ignore_case"] = st.checkbox("Ignore upper/lower case", True)
-    if st.button("▶ Run analysis", type="primary", key=f"run_{kind}"):
+        opts["ignore_case"] = st.checkbox(t("Ignore upper/lower case"), True)
+    if st.button(t("▶ Run analysis"), type="primary", key=f"run_{kind}"):
         if any(not k.strip() for k in key.values()):
             st.error("❌ Every item needs an answer in the key."); return
         try:

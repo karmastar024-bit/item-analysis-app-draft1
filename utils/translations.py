@@ -2,9 +2,9 @@
 (e.g. "es") and registering it in LANGUAGES. Any missing key falls back
 to English, so a partial translation never breaks the app.
 
-NOTE: Dzongkha strings below are a starter set and should be reviewed
-by a native speaker before wider release."""
+"""
 import streamlit as st
+from utils.dzongkha import DZ
 
 LANGUAGES = {"en": "English", "dz": "རྫོང་ཁ (Dzongkha)"}
 # Future: "es": "Español", "fr": "Français", "hi": "हिन्दी"
@@ -38,9 +38,7 @@ STRINGS = {
                     "session only. They are not saved, and no student data is sent to any "
                     "external service."),
     },
-    "dz": {
-        "language": "སྐད་ཡིག", "menu": "དཀར་ཆག",
-    },
+    "dz": DZ,
 }
 
 
@@ -48,6 +46,6 @@ def current_lang():
     return st.session_state.get("lang", "en")
 
 
-def t(key, lang=None):
+def t(key, lang=None, *, fallback=None):
     lang = lang or current_lang()
-    return STRINGS.get(lang, {}).get(key) or STRINGS["en"].get(key, key)
+    return STRINGS.get(lang, {}).get(key) or STRINGS["en"].get(key, fallback if fallback is not None else key)

@@ -1,3 +1,4 @@
+from utils.translations import t
 import hashlib
 from pathlib import Path
 from components.item_results import section_results, show_section
@@ -10,20 +11,20 @@ SAMPLE = Path(__file__).resolve().parent.parent / "templates" / "written_templat
 
 
 def render():
-    st.header("Written response")
-    st.caption("Use the marks awarded for each short answer, long answer or essay.")
-    with st.expander("How are written responses scored?"):
-        st.write("Each item keeps its awarded marks, including partial credit. Difficulty is the "
+    st.header(t("written", fallback="Written response"))
+    st.caption(t("desc_written", fallback="Use the marks awarded for each short answer, long answer or essay."))
+    with st.expander(t("How is this item type scored?", fallback="How are written responses scored?")):
+        st.write(t("score_written", fallback="Each item keeps its awarded marks, including partial credit. Difficulty is the "
                  "mean mark divided by the maximum mark for that item. Discrimination compares "
-                 "the mean marks of the upper and lower groups on the same scale.")
+                 "the mean marks of the upper and lower groups on the same scale."))
     c1, c2 = st.columns([3, 1.4])
-    c1.caption("Start with the Excel template. On the **Written** sheet, enter the maximum mark "
+    c1.caption(t("setup_written", fallback="Start with the Excel template. On the **Written** sheet, enter the maximum mark "
                "for each question in the gold **MAX** row. On one row per student, enter their "
                "**Student ID**, **Name**, overall **Total Score**, and marks for each question. "
-               "The overall score determines the upper and lower groups.")
+               "The overall score determines the upper and lower groups."))
     if SAMPLE.exists():
-        c2.download_button("Download Excel template", SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
-    up = st.file_uploader("Upload .csv or .xlsx", type=["csv", "xlsx"], key="up_written")
+        c2.download_button(t("Download Excel template"), SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
+    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key="up_written")
     if up is None:
         return
     try:
@@ -33,14 +34,14 @@ def render():
     v = validate(df, "written")
     for w in v.warnings: st.warning("⚠️ " + w)
     if not v.ok:
-        for e in v.errors: st.error("❌ " + e)
+        for e in v.errors: st.error(t(e))
         return
-    st.success(f"File checked: {v.info['students']} students, {v.info['items']} items.")
+    st.success(t("checked", fallback="File checked: {students} students, {items} items.").format(**v.info))
     sig = hashlib.md5(up.getvalue()).hexdigest()
     if st.session_state.get("res_written", {}).get("sig") != sig:
         st.session_state.pop("res_written", None)
 
-    if st.button("▶ Run analysis", type="primary", key="run_written"):
+    if st.button(t("▶ Run analysis"), type="primary", key="run_written"):
         mx = v.max_scores
         try:
             totals = v.totals

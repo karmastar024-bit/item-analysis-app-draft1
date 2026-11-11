@@ -19,6 +19,6 @@ def render():
     st.header(t("sec_choose"))
     with st.container(key="assessment_list"):
         for key, target, description in CHOICES:
-            label = f"**{t(key)}** {description}"
+            label = f"**{t(key)}** {t('desc_' + key, fallback=description)}"
             if st.button(label, key=f"choose_{target}", width="stretch"):
                 go(target)

@@ -3,7 +3,7 @@ from pathlib import Path
 import streamlit as st
 from components import explanations as ex
 from components.navigation import go
-from utils.translations import t
+from utils.translations import t, current_lang
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 TEMPLATES = Path(__file__).resolve().parent.parent / "templates"
@@ -12,6 +12,10 @@ EMAIL, GITHUB = "karmastar024@gmail.com", "https://github.com/karmastar024-bit/i
 
 def about():
     st.header(t("about"))
+    if current_lang() == "dz":
+        st.write(t("About guide"))
+        st.write(t("footer_created") + " · " + EMAIL)
+        return
     st.write("Use Item Analyzer to review a class test before you use its questions again. "
              "Look at which questions students missed, which answers they chose and how each "
              "item relates to performance on the test as a whole.")
@@ -23,6 +27,9 @@ def about():
 
 def how_it_works():
     st.header(t("how"))
+    if current_lang() == "dz":
+        st.markdown(t("How guide"))
+        return
     st.markdown("""
 1. Choose the type of question you marked.
 2. Download its Excel template. Enter one student per row and one question per column.
@@ -36,28 +43,54 @@ a box plot and summary statistics. You can also compare the class mean with a ta
 
 
 def item_guide():
-    st.header(t("guide")); ex.render_stat_tabs()
+    st.header(t("guide"))
+    if current_lang() == "dz":
+        st.markdown(t("guide_summary"))
+        with st.expander(t("Reference in English")):
+            ex.render_stat_tabs()
+    else:
+        ex.render_stat_tabs()
 
 
 def decision_rules():
-    st.header(t("rules")); ex.render_rule_tabs()
+    st.header(t("rules"))
+    if current_lang() == "dz":
+        st.markdown(t("rules_summary"))
+        with st.expander(t("Reference in English")):
+            ex.render_rule_tabs()
+    else:
+        ex.render_rule_tabs()
 
 
 def statistical_tests_guide():
     st.header(t("stat_tests"))
+    if current_lang() == "dz":
+        st.write(t("test_compare"))
+        st.info(t("known_sd"))
     for k, (ltx, txt) in ex.TESTS.items():
-        with st.expander(k, expanded=False):
+        with st.expander(t(k), expanded=False):
             st.latex(ltx); st.write(txt)
     st.info(ex.ASSUMPTIONS)
-    if st.button("Open Test Distribution", type="primary"): go("statistics")
+    if st.button(t("Open Test Distribution"), type="primary"): go("statistics")
 
 
 def methodology():
-    st.header(t("methodology")); ex.render_methodology()
+    st.header(t("methodology"))
+    if current_lang() == "dz":
+        st.markdown(t("Results note"))
+        with st.expander(t("Reference in English")):
+            ex.render_methodology()
+    else:
+        ex.render_methodology()
 
 
 def data_format():
     st.header(t("data_format"))
+    if current_lang() == "dz":
+        st.write(t("setup_students"))
+        for key in ("mcq", "tf", "fill", "matching", "written", "dist"):
+            st.markdown(t("setup_" + key))
+        return
     st.markdown("""
 **Excel templates** — gold KEY (or MAX) row above the column headers:
 `Student ID`, `Name`, `Total Score`, `Q1`, `Q2`, … . Enter students below the headers.
@@ -87,7 +120,7 @@ Student Name and Total Scores. Enter one name and one numeric overall score per 
 
 def sample_data():
     st.header(t("samples"))
-    st.write("Download a template for your own results, or use a sample class file to try the analysis.")
+    st.write(t("sample_intro", fallback="Download a template for your own results, or use a sample class file to try the analysis."))
     files = [("MCQ – combined Excel template", TEMPLATES / "mcq_template.xlsx"),
              ("True or False – Excel template", TEMPLATES / "true_false_template.xlsx"),
              ("Fill in the Blanks – Excel template", TEMPLATES / "fill_blank_template.xlsx"),
@@ -110,6 +143,6 @@ def contact():
 
 def feedback():
     st.header(t("feedback"))
-    st.write("Found a problem or have an idea? Please do **not** include student data.")
-    st.link_button("Report an issue on GitHub", f"{GITHUB}/issues")
-    st.link_button("Email feedback", f"mailto:{EMAIL}?subject=Item%20Analyzer%20feedback")
+    st.write(t("feedback_intro", fallback="Found a problem or have an idea? Please do **not** include student data."))
+    st.link_button(t("Report an issue on GitHub"), f"{GITHUB}/issues")
+    st.link_button(t("Email feedback"), f"mailto:{EMAIL}?subject=Item%20Analyzer%20feedback")
