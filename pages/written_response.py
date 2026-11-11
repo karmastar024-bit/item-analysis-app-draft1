@@ -46,7 +46,7 @@ def render():
         try:
             totals = v.totals
             out = analyze_written(v.responses, mx, totals)
-            report = section_results(out, totals, "Written response")
+            report = section_results(out, v.responses.fillna(0).sum(axis=1), "Written response")
             st.session_state["res_written"] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
             st.session_state["stat_scores"] = totals.tolist()
             st.session_state["stat_label"] = "Written response"

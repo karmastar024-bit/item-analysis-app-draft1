@@ -7,7 +7,8 @@ import streamlit as st
 from analysis import statistical_tests as T
 from components import charts, explanations as ex
 from utils.data_validation import overall_scores
-from utils.file_handlers import read_upload, df_to_csv_bytes
+from utils.file_handlers import read_upload
+from report_extras import create_distribution_pdf
 from utils.translations import t
 
 TESTS = ["t-test", "z-test"]
@@ -38,7 +39,7 @@ def _alt():
                              "strong reason for a direction.")
 
 
-def _show(res):
+def _show(res, bins):
     st.subheader(t(res["name"]))
     c = st.columns(4)
     c[0].metric(t("Test statistic"), f"{res['statistic']:.3f}")
@@ -54,11 +55,9 @@ def _show(res):
     for w in res["warnings"]: st.warning("⚠️ " + w)
     with st.expander(t("Details")):
         st.json({k: (float(v) if isinstance(v, (np.floating, float)) else v) for k, v in res["details"].items()})
-    row = {"Test": res["name"], "H0": res["null"], "H1": res["alternative"], "Statistic": res["statistic"],
-           "df": res["df"], "p-value": res["p_value"], "alpha": res["alpha"],
-           "CI low": lo, "CI high": hi, "Decision": res["decision"]}
-    st.download_button(t("Download test result (CSV)"), df_to_csv_bytes(pd.DataFrame([row])),
-                       "test_result.csv", "text/csv")
+    st.download_button(t("Download PDF report"), create_distribution_pdf(res, bins),
+                       "test_distribution.pdf", "application/pdf", type="primary",
+                       icon=":material/download:", on_click="ignore")
 
 
 def render():
@@ -94,7 +93,8 @@ def render():
     a, b = st.columns([3, 1.4])
     a.markdown("**" + t("Score frequency") + "**")
     b.markdown("**" + t("Box plot") + "**")
-    a.altair_chart(charts.score_bars(charts.score_bins(vals), "Overall test score"), theme=None, width="stretch")
+    bins = charts.score_bins(vals)
+    a.altair_chart(charts.score_bars(bins, "Overall test score"), theme=None, width="stretch")
     b.altair_chart(charts.boxplot(vals), theme=None, width="stretch")
     st.caption(t("box_help", fallback="The box contains the middle 50% of scores; its line marks the median. "
                "Dots beyond the whiskers are possible outliers."))
@@ -105,8 +105,7 @@ def render():
         localized = summary.copy()
         localized["Statistic"] = localized["Statistic"].map(t)
         st.dataframe(localized.rename(columns=t), hide_index=True, width="stretch")
-        st.download_button(t("Download statistics (CSV)"), df_to_csv_bytes(summary),
-                           "descriptive_statistics.csv", "text/csv")
+
 
     st.subheader(t("Compare with a reference mean"))
     test = st.radio(t("Choose a test"), TESTS, key="which_test", horizontal=True)
@@ -131,6 +130,6 @@ def render():
         try:
             result = (T.one_sample_t(vals, mu, alpha, alt) if test == "t-test" else
                       T.one_sample_z(vals, mu, sigma, alpha, alt))
-            _show(result)
+            _show(result, bins)
         except ValueError as e:
             st.error(f"❌ {e}")

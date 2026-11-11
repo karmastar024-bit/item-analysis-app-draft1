@@ -93,7 +93,7 @@ def render(kind):
                 else: sc = scoring.score_matching(resp, key, **opts)
                 totals = v.totals
                 out = analyze_binary(sc, totals)
-                report = section_results(out, totals, cfg["title"])
+                report = section_results(out, sc.sum(axis=1), cfg["title"])
             st.session_state[res_key] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
             st.session_state["stat_scores"] = totals.tolist()
             st.session_state["stat_label"] = cfg["title"]
