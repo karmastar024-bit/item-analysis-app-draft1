@@ -263,7 +263,7 @@ def _distribution_chart(dist, width, height=170, xlabel="Score (number of correc
     return drawing
 
 
-def create_section_pdf(title, metrics, bins, frame, note, score_label):
+def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_items=None):
     """Build the shared item report with an efficiency column for multiple choice."""
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=15*mm, rightMargin=15*mm,
@@ -279,7 +279,8 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label):
     story.extend([Paragraph("Score distribution", styles["h2"]),
                   _distribution_chart({"bins": bins}, width, xlabel=score_label),
                   Paragraph("Item-by-item analysis", styles["h2"]), Paragraph(note, styles["note"])])
-    mcq = "Distractor efficiency" in frame
+    mcq = mcq_items is not None
+    breakdown = [["Question", "Key", "Functional distractors", "Non-functional distractors"]]
     if mcq:
         columns = ["Question", "Difficulty", "Discrimination", "Distractor efficiency"]
     else:
@@ -288,8 +289,28 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label):
     headers = ["Item", "Difficulty", "Discrim."]
     widths = [.12, .10, .10]
     if mcq:
-        headers.append("DE (%)")
-        widths.append(.10)
+        frame = frame.copy()
+        by_question = {}
+        for item in mcq_items:
+            functional, nonfunctional = [], []
+            for option in item["option_breakdown"]:
+                if option["is_correct"]:
+                    continue
+                group = functional if option["is_functional"] else nonfunctional
+                group.append(option)
+            groups = (functional, nonfunctional)
+            by_question[item["question"]] = [
+                ", ".join(o["option"] for o in group) or "None" for group in groups
+            ]
+            breakdown.append([item["question"], item["correct_answer"], *[
+                "\n".join(f"{o['option']}   {o['count']} ({o['percentage']:g}%)" for o in group)
+                or "None" for group in groups
+            ]])
+        names = ["Functional distractors", "Non-functional distractors"]
+        frame[names] = [by_question[q] for q in frame["Question"]]
+        columns.extend(names)
+        headers.extend(["DE (%)", "Functional\ndistractors", "Non-functional\ndistractors"])
+        widths = [.10, .085, .085, .075, .11, .14]
         story.append(Paragraph("DE = distractor efficiency.", styles["note"]))
     decision_col = len(headers)
     rows = [headers + ["Decision", "Reason"]]
@@ -304,6 +325,12 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label):
         table.setStyle(TableStyle([("TEXTCOLOR", cell, cell, _REC_COLORS.get(row[decision_col], _NAVY)),
                                    ("FONTNAME", cell, cell, "Helvetica-Bold")]))
     story.append(table)
+    if mcq:
+        story.extend([Paragraph("Distractors by question", styles["h2"]),
+                      Paragraph("Each option shows its selection count and percentage of all students. "
+                                "An incorrect option selected by at least 5% of students is functional. "
+                                "Below 5%, it is a non-functional distractor (NFD).", styles["body"]),
+                      Spacer(1, 6), _table(breakdown, [width*f for f in (.17, .09, .37, .37)])])
     doc.build(story)
     return buffer.getvalue()
 
