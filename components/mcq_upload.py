@@ -27,7 +27,7 @@ def render_upload(sanitize):
                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                        key="mcq_combined_template", width="stretch")
 
-    uploaded = st.file_uploader(t("Upload .xlsx"), type=["xlsx"], key="mcq_combined_upload",
+    uploaded = st.file_uploader(t("Upload .xlsx"), label_visibility="collapsed", type=["xlsx"], key="mcq_combined_upload",
                                 help="One completed MCQ workbook, up to 10 MB.")
     sig = hashlib.sha256(uploaded.getvalue()).hexdigest() if uploaded else None
     if st.session_state.get("mcq_workbook_signature") != sig:

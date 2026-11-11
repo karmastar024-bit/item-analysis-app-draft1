@@ -40,8 +40,8 @@ def section_results(df, section_scores, title):
     score_label = f"{score_name} score"
     values = pd.Series(section_scores)
     metrics = [("Students", len(values)), ("Items", len(df)), (f"Mean {score_label}", f"{values.mean():.2f}"),
-               ("Standard deviation (sample)", f"{values.std():.2f}" if len(values) > 1 else "—"), (f"Lowest {score_label}", f"{values.min():g}"),
-               (f"Highest {score_label}", f"{values.max():g}")]
+               ("Standard deviation (sample)", f"{values.std():.2f}" if len(values) > 1 else "—"), ("Minimum score", f"{values.min():g}"),
+               ("Maximum score", f"{values.max():g}")]
     display = df.drop(columns=["Interpretation"]).rename(columns={"Decision": "Recommendation", "Reason": "Why"})
     bins = charts.score_bins(values)
     note = "Students are ranked by their overall test score for the upper and lower 27% groups."
