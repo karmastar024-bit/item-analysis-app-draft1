@@ -110,7 +110,6 @@
 .ia-footer, [data-testid="stMetric"] {padding: 1.15rem;}
 .ia-footer {text-align: center; font-size: .9rem; line-height: 1.65;}
 .ia-footer p {max-width: 76ch; margin: 0 auto .8rem;}
-[data-testid="stVegaLiteChart"] {padding: .65rem;}
 [data-testid="stDownloadButton"] button, [data-testid="stPopover"] button,
 [data-baseweb="input"], [data-baseweb="select"] > div {border-radius: 10px;}
 @media (max-width: 680px) {
@@ -136,7 +135,8 @@
 .stApp [role="tab"] {color:#e4eef2;}
 .stApp [role="tab"][aria-selected="true"] {color:#ffe0a7;}
 .stApp [data-testid="stCheckbox"] label p {color:#f4eee3;}
-.stApp [data-testid="stVegaLiteChart"] {box-sizing:border-box;background:linear-gradient(120deg,#182e40ef,#182938e8);}
+.stApp [data-testid="stVegaLiteChart"] {border:0; background:linear-gradient(120deg,#182e40ef,#182938e8);
+    box-shadow:inset 0 0 0 1px var(--edge), inset 0 1px 0 #ffffff32, 0 6px 20px #08121f30;}
 .ia-result-table {overflow:auto;max-height:65vh;border:1px solid #708999;border-radius:15px;
     background:linear-gradient(115deg,#1e3546f5,#182a39f2);color:#eff4f4;}
 .ia-result-table table {width:100%;border-collapse:separate;border-spacing:0;font:400 .95rem/1.45 "Source Sans 3",system-ui,sans-serif;color:inherit;}
