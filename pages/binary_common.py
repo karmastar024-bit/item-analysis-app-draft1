@@ -21,8 +21,7 @@ CFG = {
               setup="On the **Fill in the Blanks** sheet, enter accepted answers in the gold **KEY** row above each question. Separate alternatives with a vertical bar, as in `Paro | Paro Dzong`.",
             help="Put every acceptable answer in the cell, separated by |  e.g. Paro | Paro Dzong",
               doc=("A response is correct (**1**) if, after normalization, it equals **any** accepted answer; "
-                   "otherwise **0**. Normalization: case ignored (optional), extra spaces removed, punctuation "
-                   "removed (optional)."),
+                   "otherwise **0**. Capitalization and extra spaces are ignored. Punctuation counts."),
               de="Distractor efficiency is **not applicable**: students write their own answers."),
  "matching": dict(title="Matching", sample="sample_matching.csv", col="Correct match",
                   setup="On the **Matching** sheet, enter the letter or number for each correct match in the gold **KEY** row above its prompt.",
@@ -74,13 +73,6 @@ def render(kind):
         st.session_state.pop(res_key, None)
 
     key = v.key
-    opts = {}
-    if kind == "fill":
-        o1, o2 = st.columns(2)
-        opts["ignore_case"] = o1.checkbox(t("Ignore upper/lower case"), True)
-        opts["strip_punct"] = o2.checkbox(t("Ignore punctuation"), False)
-    elif kind == "matching":
-        opts["ignore_case"] = st.checkbox(t("Ignore upper/lower case"), True)
     if st.button(t("▶ Run analysis"), type="primary", key=f"run_{kind}"):
         if any(not k.strip() for k in key.values()):
             st.error("❌ Every item needs an answer in the key."); return
@@ -89,14 +81,12 @@ def render(kind):
                 resp = v.responses
                 if kind == "tf": sc = scoring.score_true_false(resp, key)
                 elif kind == "fill":
-                    sc = scoring.score_fill_blank(resp, {c: scoring.split_accepted(k) for c, k in key.items()}, **opts)
-                else: sc = scoring.score_matching(resp, key, **opts)
+                    sc = scoring.score_fill_blank(resp, {c: scoring.split_accepted(k) for c, k in key.items()})
+                else: sc = scoring.score_matching(resp, key)
                 totals = v.totals
                 out = analyze_binary(sc, totals)
                 report = section_results(out, sc.sum(axis=1), cfg["title"])
             st.session_state[res_key] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
-            st.session_state["stat_scores"] = totals.tolist()
-            st.session_state["stat_label"] = cfg["title"]
         except Exception:
             st.error("❌ The analysis could not be completed. Please check your file and answer key "
                      "against the Data Format Guide."); return

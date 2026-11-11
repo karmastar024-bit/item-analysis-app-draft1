@@ -48,8 +48,6 @@ def render():
             out = analyze_written(v.responses, mx, totals)
             report = section_results(out, v.responses.fillna(0).sum(axis=1), "Written response")
             st.session_state["res_written"] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
-            st.session_state["stat_scores"] = totals.tolist()
-            st.session_state["stat_label"] = "Written response"
         except Exception:
             st.error("❌ The analysis could not be completed. Check your file against the Data Format Guide."); return
     r = st.session_state.get("res_written")

@@ -13,16 +13,8 @@ from utils.translations import t
 
 TESTS = ["t-test", "z-test"]
 
-def score_input(label, key):
-    """Use an uploaded score column or totals from this session's item analysis."""
-    totals = st.session_state.get("stat_scores")
-    if totals:
-        previous = f"Totals from my item analysis ({st.session_state.get('stat_label', '')})"
-        source = st.radio(t(label), ["Upload a file", previous], key=f"src_{key}", format_func=lambda x: t("session_scores", fallback=x) if x == previous else t(x), horizontal=True)
-        if source == previous:
-            return list(totals)
-
-    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key=f"up_{key}")
+def score_input():
+    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key="up_desc")
     if up is None: return None
     try:
         return overall_scores(read_upload(up)).tolist()
@@ -72,7 +64,7 @@ def render():
         right.download_button(t("Download Excel template"), template.read_bytes(), template.name,
                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                               width="stretch")
-    vals = score_input("Total test scores", "desc")
+    vals = score_input()
     if vals is None:
         st.info(t("dist_empty", fallback="Upload your class scores to see the distribution and descriptive statistics."))
         return

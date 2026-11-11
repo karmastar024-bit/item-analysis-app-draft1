@@ -7,7 +7,7 @@ import streamlit as st
 
 from components.item_results import show_results
 from components.mcq_upload import render_upload
-from report_extras import compute_score_distribution, create_pdf_report
+from report_extras import compute_score_distribution, create_section_pdf
 
 
 def sanitize(data):
@@ -74,6 +74,9 @@ if "analysis_results" in st.session_state:
              "Distractor efficiency": f"{item['distractor_efficiency']:.0f}%",
              "Recommendation": item["recommendation"].upper(), "Why": item["decision_reason"]}
             for item in results["items"]]
-    show_results(metrics, compute_score_distribution(results)["bins"], "MCQ score (correct answers)",
-                 pd.DataFrame(rows), create_pdf_report(results), "MCQ_item_analysis.pdf",
-                 "Students are ranked by their overall test score for the upper and lower 27% groups.")
+    bins = compute_score_distribution(results)["bins"]
+    score_label = "MCQ score (correct answers)"
+    note = "Students are ranked by their overall test score for the upper and lower 27% groups."
+    frame = pd.DataFrame(rows)
+    pdf = create_section_pdf("Multiple choice", metrics, bins, frame, note, score_label)
+    show_results(metrics, bins, score_label, frame, pdf, "MCQ_item_analysis.pdf", note)
