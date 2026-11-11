@@ -50,6 +50,7 @@ DZ = {
 DZ.update({
     "dist_title": DZ["sec_dist"], "Score range": "སྐུགས་ཀྱི་ཁྱབ་ཚད།", "Score frequency": "སྐུགས་རེའི་གྱངས་ཁ།",
     "Box plot": "སྐུགས་ཀྱི་སྒྲོམ་རིས།", "Statistic": "གྲངས་རྩིས།", "Value": "གྲངས།",
+    "Minimum score": "སྐུགས་དམའ་ཤོས།", "Maximum score": "སྐུགས་མཐོ་ཤོས།",
     "Minimum": "དམའ་ཤོས།", "Maximum": "མཐོ་ཤོས།", "Range": "ཁྱབ་ཚད།", "Mode": "འབྱུང་གྲངས་མང་ཤོས།",
     "Number Correct": "ལན་ངོ་མའི་གྱངས་ཁ།", "Number Incorrect": "ལན་འཛོལ་བའི་གྱངས་ཁ།",
     "Difficulty": "དཀའ་ཚད།", "Discrimination": "ཁྱད་པར་འབྱེད་ཚད།", "Difficulty (p)": "དཀའ་ཚད། (p)",
