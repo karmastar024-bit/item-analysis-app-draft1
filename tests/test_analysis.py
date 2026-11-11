@@ -17,7 +17,7 @@ from analysis import statistical_tests as T
     (.5,.5,33.33,"RETAIN"), (.2,.2,None,"RETAIN"), (.8,.2,None,"RETAIN")])
 def test_decision(p,d,de,exp): assert decide(p,d,de)[0]==exp
 def test_decision_reason_text():
-    assert decide(.87,.4)[1]=="REVIEW – Difficulty is high (p = 0.87)."
+    assert decide(.87,.4)[1]=="Difficulty is high (p = 0.87)."
     assert "Difficulty is low (p = 0.14)" in decide(.14,.1)[1]
 def test_decision_nan(): assert decide(float("nan"),.3)[0]=="NOT AVAILABLE"
 

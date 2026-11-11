@@ -118,3 +118,26 @@ def test_written_validation():
     assert "Negative" in msgs(run("written_response","x.csv",csv(bad),click=False),"error")
     bad = w[w.StudentID!="MAX"]
     assert "MAX" in msgs(run("written_response","x.csv",csv(bad),click=False),"error")
+
+
+@pytest.mark.parametrize("page,kind,key,first,second,expected", [
+    ("true_false", "tf", "True,False", "True,False", "False,False", [2, 1]),
+    ("matching", "matching", "A,B", "A,B", "B,B", [2, 1]),
+    ("fill_blank", "fill", "Paro,Haa", "Paro,Haa", "Punakha,Haa", [2, 1]),
+    ("written_response", "written", "4,5", "2.5,3", "4,", [5.5, 4]),
+])
+def test_results_use_section_marks(page, kind, key, first, second, expected):
+    marker = "MAX" if kind == "written" else "KEY"
+    raw = (f"StudentID,Name,Total Score,Q1,Q2\n{marker},,,{key}\n"
+           f"S1,Pema,56,{first}\nS2,Dorji,82,{second}\n").encode()
+    at = run(page, "scores.csv", raw)
+    result = at.session_state[f"res_{kind}"]
+    scores = pd.Series(expected)
+    metrics = dict(result["metrics"])
+    assert metrics["Mean section score"] == f"{scores.mean():.2f}"
+    assert metrics["Standard deviation (sample)"] == f"{scores.std():.2f}"
+    assert metrics["Lowest section score"] == f"{min(expected):g}"
+    assert metrics["Highest section score"] == f"{max(expected):g}"
+    assert result["bins"] == [(f"{v:g}", 1) for v in sorted(expected)]
+    assert at.session_state["stat_scores"] == [56, 82]
+    assert result["df"].iloc[0]["Discrimination (D)"] == (0.38 if kind == "written" else -1)
