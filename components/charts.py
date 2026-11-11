@@ -72,10 +72,12 @@ def score_bins(scores):
 
 
 def glass_chart(chart):
-    return (chart.properties(height=260, background="transparent")
+    return (chart.properties(width="container", height=260, background="transparent",
+                             autosize=alt.AutoSizeParams(type="fit", contains="padding", resize=True),
+                             padding={"left": 12, "right": 16, "top": 14, "bottom": 12})
             .configure_view(stroke=None)
             .configure_axis(labelColor="#e6efef", titleColor="#fff3da", gridColor="#647889",
-                            gridOpacity=.34, domainColor="#859da7", labelFontSize=12,
+                            gridOpacity=.34, titlePadding=8, domainColor="#859da7", labelFontSize=12,
                             titleFontSize=13, labelFont="IA Tibetan, sans-serif", titleFont="IA Tibetan, sans-serif"))
 
 
@@ -83,7 +85,7 @@ def score_bars(bins, score_label):
     chart = alt.Chart(pd.DataFrame(bins, columns=["Score", "Students"])).mark_bar(
         color="#89d8cb", cornerRadiusTopLeft=4, cornerRadiusTopRight=4
     ).encode(
-        x=alt.X("Score:N", sort=None, title=t(score_label), axis=alt.Axis(labelAngle=0)),
+        x=alt.X("Score:N", sort=None, title=t(score_label), axis=alt.Axis(labelAngle=0, labelOverlap="greedy")),
         y=alt.Y("Students:Q", title=t("Students"), axis=alt.Axis(tickMinStep=1)),
         tooltip=[alt.Tooltip("Score:N", title=t("Score")), alt.Tooltip("Students:Q", title=t("Students"))]
     )
@@ -94,7 +96,7 @@ def boxplot(values):
     frame = pd.DataFrame({"score": values})
     chart = alt.Chart(frame).mark_boxplot(
         extent=1.5, size=44, box={"fill": "#89d8cb"}, median={"color": "#102936"},
-        rule={"color": "#d1e3e1"}, ticks={"color": "#d1e3e1"}, outliers={"color": "#edc581"}
+        rule={"color": "#d1e3e1"}, ticks={"color": "#d1e3e1", "size": 28}, outliers={"color": "#edc581"}
     ).encode(y=alt.Y("score:Q", title=t("Overall test score"), scale=alt.Scale(zero=False)))
     return glass_chart(chart)
 
