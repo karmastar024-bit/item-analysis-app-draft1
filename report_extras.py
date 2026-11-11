@@ -263,6 +263,16 @@ def _distribution_chart(dist, width, height=170, xlabel="Score (number of correc
     return drawing
 
 
+def distractor_groups(item):
+    """Return functional and non-functional incorrect options in answer order."""
+    functional, nonfunctional = [], []
+    for option in item["option_breakdown"]:
+        if not option["is_correct"]:
+            group = functional if option["is_functional"] else nonfunctional
+            group.append(option)
+    return functional, nonfunctional
+
+
 def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_items=None):
     """Build the shared item report with an efficiency column for multiple choice."""
     buffer = BytesIO()
@@ -292,13 +302,7 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_it
         frame = frame.copy()
         by_question = {}
         for item in mcq_items:
-            functional, nonfunctional = [], []
-            for option in item["option_breakdown"]:
-                if option["is_correct"]:
-                    continue
-                group = functional if option["is_functional"] else nonfunctional
-                group.append(option)
-            groups = (functional, nonfunctional)
+            groups = distractor_groups(item)
             by_question[item["question"]] = [
                 ", ".join(o["option"] for o in group) or "None" for group in groups
             ]
