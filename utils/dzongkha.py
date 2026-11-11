@@ -1,7 +1,5 @@
 """Dzongkha interface copy. Workbook column names and statistical symbols stay literal."""
 DZ = {
-    "Section score": "སྡེ་ཚན་གྱི་སྐུགས།", "Mean section score": "སྡེ་ཚན་གྱི་ཆ་སྙོམས་སྐུགས།",
-    "Lowest section score": "སྡེ་ཚན་གྱི་སྐུགས་དམའ་ཤོས།", "Highest section score": "སྡེ་ཚན་གྱི་སྐུགས་མཐོ་ཤོས།",
     "app_title": "དྲི་བ་དབྱེ་ཞིབ།", "subtitle": "འབྲུག་གི་སློབ་ཁང་ནང་གི་དབྱེ་ཞིབ།",
     "language": "སྐད་ཡིག", "menu": "དཀར་ཆག", "home": "མདུན་ཤོག",
     "sec_choose": "དྲི་བའི་དབྱེ་བ་གདམ་གནང་།",
@@ -95,6 +93,13 @@ DZ.update({
     "Enter a name for every student in the Name column.": "**Name** ཀེར་ཐིག་ནང་ སློབ་ཕྲུག་རེ་རེའི་མིང་བཀོད་གནང་།",
     "Enter a numeric overall Total Score for every student.": "**Total Score** ནང་ སློབ་ཕྲུག་རེ་རེའི་བསྡོམས་སྐུགས་ཨང་གྲངས་ཐོག་བཀོད་གནང་།",
 })
+
+for name, item in (("T/F", "tf"), ("fill-in-the-blanks", "fill"), ("matching", "matching"),
+                   ("written-response", "written")):
+    stem = DZ[item].rstrip("།") + " གི་"
+    for prefix, phrase in (("", "སྐུགས།"), ("Mean ", "ཆ་སྙོམས་སྐུགས།"),
+                           ("Lowest ", "སྐུགས་དམའ་ཤོས།"), ("Highest ", "སྐུགས་མཐོ་ཤོས།")):
+        DZ[f"{prefix}{name} score"] = stem + phrase
 
 # Reasons are composed by analysis.decision from these phrases and the item's figures.
 REASON_PHRASES = {
