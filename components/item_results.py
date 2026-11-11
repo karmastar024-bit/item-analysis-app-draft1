@@ -34,18 +34,18 @@ def show_results(metrics, bins, score_label, frame, pdf, filename, note):
                        icon=":material/download:", type="primary", on_click="ignore")
 
 
-def section_results(df, totals, title):
-    values = pd.Series(totals)
-    metrics = [("Students", len(values)), ("Items", len(df)), ("Mean overall score", f"{values.mean():.2f}"),
-               ("Standard deviation (sample)", f"{values.std():.2f}"), ("Lowest overall score", f"{values.min():g}"),
-               ("Highest overall score", f"{values.max():g}")]
+def section_results(df, section_scores, title):
+    values = pd.Series(section_scores)
+    metrics = [("Students", len(values)), ("Items", len(df)), ("Mean section score", f"{values.mean():.2f}"),
+               ("Standard deviation (sample)", f"{values.std():.2f}" if len(values) > 1 else "—"), ("Lowest section score", f"{values.min():g}"),
+               ("Highest section score", f"{values.max():g}")]
     display = df.drop(columns=["Interpretation"]).rename(columns={"Decision": "Recommendation", "Reason": "Why"})
-    bins = charts.score_bins(totals)
+    bins = charts.score_bins(values)
     note = "Students are ranked by their overall test score for the upper and lower 27% groups."
     pdf = create_section_pdf(title, metrics, bins, display, note)
     return dict(metrics=metrics, bins=bins, display=display, pdf=pdf, note=note)
 
 
 def show_section(result, filename):
-    show_results(result["metrics"], result["bins"], "Overall test score", result["display"],
+    show_results(result["metrics"], result["bins"], "Section score", result["display"],
                  result["pdf"], filename, result["note"])
