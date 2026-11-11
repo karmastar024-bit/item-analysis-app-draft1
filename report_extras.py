@@ -659,7 +659,7 @@ def create_section_pdf(title, metrics, bins, frame, note):
         story.append(_table([[label for label, value in row], [value for label, value in row]],
                             [width/3]*3))
     story.extend([Paragraph("Score distribution", styles["h2"]),
-                  _distribution_chart({"bins": bins}, width, xlabel="Overall test score"),
+                  _distribution_chart({"bins": bins}, width, xlabel="Section score"),
                   Paragraph("Item-by-item analysis", styles["h2"]), Paragraph(note, styles["note"])])
     pcol = next(c for c in frame if c.startswith("Difficulty ("))
     columns = ["Item", pcol, "Discrimination (D)", "Recommendation", "Why"]
@@ -672,5 +672,42 @@ def create_section_pdf(title, metrics, bins, frame, note):
         table.setStyle(TableStyle([("TEXTCOLOR", (3,i), (3,i), _REC_COLORS.get(row[3], _NAVY)),
                                    ("FONTNAME", (3,i), (3,i), "Helvetica-Bold")]))
     story.append(table)
+    doc.build(story)
+    return buffer.getvalue()
+
+
+def create_distribution_pdf(result, bins):
+    """Print the displayed score frequencies and the completed one-sample test."""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, title="Test Distribution",
+                            leftMargin=18*mm, rightMargin=18*mm)
+    width = doc.width - 12
+    styles = _styles()
+    details = result["details"]
+    lo, hi = result["ci"]
+    p = result["p_value"]
+    rows = [["Measure", "Result"],
+            ["Null hypothesis", result["null"].replace("μ", "Population mean")],
+            ["Alternative hypothesis", result["alternative"].replace("μ", "Population mean").replace("≠", "differs from")],
+            ["Test statistic", f"{result['statistic']:.3f}"]]
+    if result["df"] is not None:
+        rows.append(["Degrees of freedom", f"{result['df']:g}"])
+    if "sigma" in details:
+        rows.append(["Known population standard deviation", f"{details['sigma']:g}"])
+    rows.extend([["p-value", f"{p:.4f}" if p >= .0001 else "< 0.0001"],
+                 ["Significance level", f"{result['alpha']:g}"],
+                 [f"{100*(1-result['alpha']):g}% two-sided confidence interval for the mean",
+                  f"{lo:.3f} to {hi:.3f}"]])
+    story = [Paragraph("Test Distribution", styles["title"]),
+             Paragraph(f"Class assessment report · {date.today():%d %B %Y}", styles["subtitle"]),
+             Paragraph("Score distribution", styles["h2"]),
+             Paragraph(f"{details['n']} students · Mean overall score {details['mean']:.2f}. "
+                       "Each bar shows the number of students.", styles["body"]),
+             _distribution_chart({"bins": bins}, width, xlabel="Overall test score"),
+             Paragraph(result["name"], styles["h2"]), _table(rows, [width*.54, width*.46]),
+             Paragraph(result["decision"], styles["h2"]),
+             Paragraph(escape(result["interpretation"].replace("α", "alpha")), styles["body"])]
+    for warning in result["warnings"]:
+        story.extend([Spacer(1, 6), Paragraph(escape(warning), styles["note"])])
     doc.build(story)
     return buffer.getvalue()
