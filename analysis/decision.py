@@ -38,17 +38,17 @@ def decide(p, d, de=None):
     if de is not None and de == 0:
         discard.append("no distractor is functioning (DE = 0%)")
     if discard:
-        return "DISCARD", "DISCARD – " + "; ".join(discard) + "."
+        return "DISCARD", "; ".join(discard) + "."
 
     dword = "high" if easy else "low"
     if weak and (hard or easy):
-        return "REVISE", (f"REVISE – Difficulty is {dword} ({ptxt}) and "
+        return "REVISE", (f"Difficulty is {dword} ({ptxt}) and "
                           f"discrimination is below 0.20 ({dtxt}).")
     if weak:
-        return "REVIEW", f"REVIEW – Discrimination is below 0.20 ({dtxt})."
+        return "REVIEW", f"Discrimination is below 0.20 ({dtxt})."
     if hard or easy:
-        return "REVIEW", f"REVIEW – Difficulty is {dword} ({ptxt})."
-    return "RETAIN", (f"RETAIN – Difficulty is acceptable ({ptxt}) and "
+        return "REVIEW", f"Difficulty is {dword} ({ptxt})."
+    return "RETAIN", (f"Difficulty is acceptable ({ptxt}) and "
                       f"discrimination is adequate ({dtxt}).")
 
 
