@@ -18,15 +18,15 @@ def tibetan_font_style():
     data = b64encode((ASSETS / "tibetan.woff2").read_bytes()).decode("ascii")
     return ("<style>@font-face{font-family:'IA Tibetan';font-display:swap;font-weight:100 900;"
             "unicode-range:U+0F00-0FFF;src:url(data:font/woff2;base64," + data + ") format('woff2')}"
-            "[data-testid=stPopoverBody] label p{font-family:system-ui,'IA Tibetan',sans-serif}</style>")
+            "[data-testid=stPopoverBody] button p{font-family:system-ui,'IA Tibetan',sans-serif}</style>")
 
 
 def go(key):
     st.switch_page(PAGES[key])
 
 
-def _select_language():
-    st.session_state["lang"] = st.session_state["language_picker"]
+def _select_language(code):
+    st.session_state["lang"] = code
 
 
 def header():
@@ -42,10 +42,11 @@ def header():
         with st.container(key="header_tools", horizontal=True, gap="xsmall", horizontal_alignment="right", vertical_alignment="center"):
             st.page_link(PAGES["home"], label=t("home"), icon=":material/home:", width="content")
             with st.popover(t("language"), icon=":material/language:"):
-                languages = list(LANGUAGES)
-                st.radio(t("language"), languages, format_func=LANGUAGES.get,
-                         index=languages.index(st.session_state.get("lang", "en")),
-                         key="language_picker", on_change=_select_language)
+                for code, name in LANGUAGES.items():
+                    active = code == st.session_state.get("lang", "en")
+                    st.button(name, key=f"language_{code}", width="stretch",
+                              icon=":material/check:" if active else None,
+                              on_click=_select_language, args=(code,))
             with st.popover(t("menu"), icon=":material/menu:"):
                 for k in MENU_KEYS:
                     if k != "home" and k in PAGES:
