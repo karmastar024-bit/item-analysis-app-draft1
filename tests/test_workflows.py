@@ -134,10 +134,12 @@ def test_results_use_section_marks(page, kind, key, first, second, expected):
     result = at.session_state[f"res_{kind}"]
     scores = pd.Series(expected)
     metrics = dict(result["metrics"])
-    assert metrics["Mean section score"] == f"{scores.mean():.2f}"
+    label = {"tf":"T/F", "matching":"matching", "fill":"fill-in-the-blanks", "written":"written-response"}[kind]
+    assert not at.checkbox
+    assert metrics[f"Mean {label} score"] == f"{scores.mean():.2f}"
     assert metrics["Standard deviation (sample)"] == f"{scores.std():.2f}"
-    assert metrics["Lowest section score"] == f"{min(expected):g}"
-    assert metrics["Highest section score"] == f"{max(expected):g}"
+    assert metrics[f"Lowest {label} score"] == f"{min(expected):g}"
+    assert metrics[f"Highest {label} score"] == f"{max(expected):g}"
     assert result["bins"] == [(f"{v:g}", 1) for v in sorted(expected)]
-    assert at.session_state["stat_scores"] == [56, 82]
+    assert result["totals"] == [56, 82]
     assert result["df"].iloc[0]["Discrimination (D)"] == (0.38 if kind == "written" else -1)

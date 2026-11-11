@@ -9,10 +9,10 @@ def _s():
 
 def _go(test="t-test", scores=A, nums=None):
     at = AppTest.from_function(_s, default_timeout=60)
-    at.session_state["stat_scores"] = [float(score) for score in scores.split()]
-    at.session_state["stat_label"] = "Written response"
     at.run()
-    at.radio(key="src_desc").set_value("Totals from my item analysis (Written response)").run()
+    rows = [f"{i},Student {i},{score}" for i, score in enumerate(scores.split(), 1)]
+    data = "\n".join(["Student ID,Name,Total Score", *rows]).encode()
+    at.file_uploader[0].set_value(("scores.csv", data, "text/csv")).run()
     if not at.radio or not any(r.key == "which_test" for r in at.radio):
         return at
     at.radio(key="which_test").set_value(test).run()
@@ -82,7 +82,7 @@ def test_template_round_trip_and_score_column(monkeypatch):
     frame = read_upload(upload)
     assert list(frame.columns) == ["Student ID", "Student Name", "Total Scores"]
     monkeypatch.setattr(page.st, "file_uploader", lambda *a, **k: upload)
-    assert page.score_input("Scores", "test") == [52,68,74,81,65,90,77,61]
+    assert page.score_input() == [52,68,74,81,65,90,77,61]
 
     for contents in (
         b"Student ID,Total Scores\n001,70\n",
@@ -93,4 +93,4 @@ def test_template_round_trip_and_score_column(monkeypatch):
         invalid = BytesIO(contents)
         invalid.name = "scores.csv"
         monkeypatch.setattr(page.st, "file_uploader", lambda *a, **k: invalid)
-        assert page.score_input("Scores", "test") is None
+        assert page.score_input() is None
