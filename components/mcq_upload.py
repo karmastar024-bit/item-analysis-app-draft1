@@ -45,8 +45,6 @@ def render_upload(sanitize):
                     raise ValueError("Only .xlsx workbooks are accepted.")
                 results = sanitize(analyze_mcq_workbook(uploaded.getvalue()))
                 st.session_state["analysis_results"] = results
-                st.session_state["stat_scores"] = results["overall_scores"]
-                st.session_state["stat_label"] = "Multiple choice"
             st.success(t("analysis_done", fallback="Analysis complete. Your results are below."))
             if results["summary"]["total_students"] < 30:
                 st.warning("Fewer than 30 students: treat item decisions as indicative.")

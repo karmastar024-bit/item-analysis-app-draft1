@@ -88,7 +88,7 @@ METHOD = {
    "(case-insensitive). Blank = incorrect. Partial credit per matching set is not used.",
  "Fill-in-the-Blank scoring":
    "A response is correct if, after normalization, it equals any accepted answer. Normalization options: "
-   "ignore case, trim/collapse spaces (always), optionally remove punctuation.",
+   "ignore capitalization and extra spaces. Punctuation counts.",
 }
 
 TESTS = {

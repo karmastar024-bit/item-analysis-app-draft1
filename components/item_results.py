@@ -35,17 +35,20 @@ def show_results(metrics, bins, score_label, frame, pdf, filename, note):
 
 
 def section_results(df, section_scores, title):
+    score_name = {"True or False": "T/F", "Fill in the Blanks": "fill-in-the-blanks",
+                  "Matching": "matching", "Written response": "written-response"}[title]
+    score_label = f"{score_name} score"
     values = pd.Series(section_scores)
-    metrics = [("Students", len(values)), ("Items", len(df)), ("Mean section score", f"{values.mean():.2f}"),
-               ("Standard deviation (sample)", f"{values.std():.2f}" if len(values) > 1 else "—"), ("Lowest section score", f"{values.min():g}"),
-               ("Highest section score", f"{values.max():g}")]
+    metrics = [("Students", len(values)), ("Items", len(df)), (f"Mean {score_label}", f"{values.mean():.2f}"),
+               ("Standard deviation (sample)", f"{values.std():.2f}" if len(values) > 1 else "—"), (f"Lowest {score_label}", f"{values.min():g}"),
+               (f"Highest {score_label}", f"{values.max():g}")]
     display = df.drop(columns=["Interpretation"]).rename(columns={"Decision": "Recommendation", "Reason": "Why"})
     bins = charts.score_bins(values)
     note = "Students are ranked by their overall test score for the upper and lower 27% groups."
-    pdf = create_section_pdf(title, metrics, bins, display, note)
-    return dict(metrics=metrics, bins=bins, display=display, pdf=pdf, note=note)
+    pdf = create_section_pdf(title, metrics, bins, display, note, score_label)
+    return dict(score_label=score_label, metrics=metrics, bins=bins, display=display, pdf=pdf, note=note)
 
 
 def show_section(result, filename):
-    show_results(result["metrics"], result["bins"], "Section score", result["display"],
+    show_results(result["metrics"], result["bins"], result["score_label"], result["display"],
                  result["pdf"], filename, result["note"])
