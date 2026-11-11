@@ -1,5 +1,7 @@
 """Dzongkha interface copy. Workbook column names and statistical symbols stay literal."""
 DZ = {
+    "Section score": "སྡེ་ཚན་གྱི་སྐུགས།", "Mean section score": "སྡེ་ཚན་གྱི་ཆ་སྙོམས་སྐུགས།",
+    "Lowest section score": "སྡེ་ཚན་གྱི་སྐུགས་དམའ་ཤོས།", "Highest section score": "སྡེ་ཚན་གྱི་སྐུགས་མཐོ་ཤོས།",
     "app_title": "དྲི་བ་དབྱེ་ཞིབ།", "subtitle": "འབྲུག་གི་སློབ་ཁང་ནང་གི་དབྱེ་ཞིབ།",
     "language": "སྐད་ཡིག", "menu": "དཀར་ཆག", "home": "མདུན་ཤོག",
     "sec_choose": "དྲི་བའི་དབྱེ་བ་གདམ་གནང་།",
