@@ -14,7 +14,7 @@ from utils.translations import t
 TESTS = ["t-test", "z-test"]
 
 def score_input():
-    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key="up_desc")
+    up = st.file_uploader(t("Upload .csv or .xlsx"), label_visibility="collapsed", type=["csv", "xlsx"], key="up_desc")
     if up is None: return None
     try:
         return overall_scores(read_upload(up)).tolist()

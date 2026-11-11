@@ -24,7 +24,7 @@ def render():
                "The overall score determines the upper and lower groups."))
     if SAMPLE.exists():
         c2.download_button(t("Download Excel template"), SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
-    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key="up_written")
+    up = st.file_uploader(t("Upload .csv or .xlsx"), label_visibility="collapsed", type=["csv", "xlsx"], key="up_written")
     if up is None:
         return
     try:

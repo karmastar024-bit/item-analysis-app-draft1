@@ -54,7 +54,7 @@ def render(kind):
     if sample.exists():
         c2.download_button(t("Download Excel template"), sample.read_bytes(), sample.name, width="stretch")
 
-    up = st.file_uploader(t("Upload .csv or .xlsx"), type=["csv", "xlsx"], key=f"up_{kind}")
+    up = st.file_uploader(t("Upload .csv or .xlsx"), label_visibility="collapsed", type=["csv", "xlsx"], key=f"up_{kind}")
     if up is None:
         return
     try:

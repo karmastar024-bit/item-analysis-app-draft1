@@ -67,7 +67,7 @@ if "analysis_results" in st.session_state:
     metrics = [("Students", summary["total_students"]), ("Items", summary["total_questions"]),
                ("Mean MCQ score", f"{summary['mean_score']:.2f} / {summary['total_questions']}"),
                ("Standard deviation", f"{summary['std_score']:.2f}"),
-               ("Lowest MCQ score", summary["min_score"]), ("Highest MCQ score", summary["max_score"])]
+               ("Minimum score", summary["min_score"]), ("Maximum score", summary["max_score"])]
     rows = [{"Question": item["question"], "Difficulty": item["difficulty"],
              "Difficulty status": item["difficulty_status"], "Discrimination": item["discrimination"],
              "Discrimination status": item["discrimination_status"],
@@ -78,5 +78,5 @@ if "analysis_results" in st.session_state:
     score_label = "MCQ score (correct answers)"
     note = "Students are ranked by their overall test score for the upper and lower 27% groups."
     frame = pd.DataFrame(rows)
-    pdf = create_section_pdf("Multiple choice", metrics, bins, frame, note, score_label)
+    pdf = create_section_pdf("Multiple choice", metrics, bins, frame, note, score_label, mcq_items=results["items"])
     show_results(metrics, bins, score_label, frame, pdf, "MCQ_item_analysis.pdf", note)
