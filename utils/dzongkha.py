@@ -86,6 +86,7 @@ DZ.update({
     "Report an issue on GitHub": "GitHub ལུ་དཀའ་ངལ་སྙན་ཞུ་འབད།", "Email feedback": "གློག་འཕྲིན་ཐོག་ལས་བསམ་འཆར་བསྐུར།",
     "Open Test Distribution": "སྐུགས་ཀྱི་ཁྱབ་ཚུལ་ཁ་ཕྱེ།",
     "Difficulty status": "དཀའ་ཚད་ཀྱི་རིམ་པ།", "Discrimination status": "ཁྱད་འབྱེད་ཀྱི་རིམ་པ།",
+    "Distractors (FD / NFD)": "ལན་འཛོལ་བའི་གདམ་ཁ། (FD / NFD)",
     "Distractor efficiency": "ལན་འཛོལ་བའི་གདམ་ཁའི་ནུས་ཚད། (DE)",
     "Upper quartile (Q3)": "བཞི་ཆ་གསུམ་གྱི་ཚད། (Q3)", "Lower quartile (Q1)": "བཞི་ཆ་གཅིག་གི་ཚད། (Q1)",
     "Interquartile range": "Q3 དང་ Q1 གི་ཁྱད་པར།", "Standard error": "ཚད་ལྡན་འཛོལ་བ། (SE)",
