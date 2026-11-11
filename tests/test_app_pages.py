@@ -22,7 +22,7 @@ def test_page_loads(mod, fn):
 def test_entry_point_and_navigation():
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not at.exception, at.exception
-    assert [b.key for b in at.button] == [
+    assert [b.key for b in at.button if b.key.startswith("choose_")] == [
         "choose_mcq", "choose_true_false", "choose_fill_blank", "choose_matching",
         "choose_written", "choose_statistics",
     ]
@@ -32,3 +32,15 @@ def test_entry_point_and_navigation():
 def test_legacy_mcq_page_loads():
     at = AppTest.from_file(str(ROOT / "pages" / "mcq.py"), default_timeout=90).run()
     assert not at.exception, at.exception
+
+def test_language_switch_persists_across_navigation():
+    from utils.dzongkha import DZ
+
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    at.button(key="language_dz").click().run()
+    assert at.header[0].value == DZ["sec_choose"]
+    at.button(key="choose_statistics").click().run()
+    assert not at.exception
+    assert at.header[0].value == DZ["sec_dist"]
+    at.button(key="language_en").click().run()
+    assert "Item Analyzer" in " ".join(m.value for m in at.markdown)
