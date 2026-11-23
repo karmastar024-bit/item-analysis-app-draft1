@@ -1,4 +1,5 @@
 """Shared results layout for the five item analyses."""
+from html import escape
 from components import charts
 from utils.dzongkha import decision_reason
 from utils.translations import t, current_lang, translate
@@ -24,9 +25,12 @@ def show_results(metrics, bins, score_label, frame, pdf, filename, note):
         frame = frame.copy()
         frame["Why"] = frame["Why"].map(decision_reason)
         frame = frame.map(lambda value: translate(str(value)) if isinstance(value, str) else value)
+    formatters = {column: lambda value: translate(str(value))
+                  for column in frame.select_dtypes(include="integer").columns}
     table = frame.rename(columns=t).to_html(index=False, border=0, escape=True, na_rep="—",
+                          formatters={t(key): value for key, value in formatters.items()},
                           float_format=lambda value: translate(f"{value:.2f}"))
-    st.html('<div class="ia-result-table" role="region" aria-label="Item recommendations" tabindex="0">'
+    st.html('<div class="ia-result-table" role="region" aria-label="' + escape(t("Item-by-item analysis"), quote=True) + '" tabindex="0">'
             + table + '</div>')
     st.download_button(t("Download PDF report"), pdf, filename, "application/pdf",
                        icon=":material/download:", type="primary", on_click="ignore")
