@@ -120,6 +120,8 @@ REASON_PHRASES = {
 
 
 def decision_reason(reason):
+    from utils.locale_messages import MESSAGES
+    reason = MESSAGES.get(reason, reason)
     for phrase, translation in REASON_PHRASES.items():
         reason = reason.replace(phrase, translation)
     for action in ("RETAIN", "REVIEW", "REVISE", "DISCARD"):

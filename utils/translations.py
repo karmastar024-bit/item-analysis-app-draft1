@@ -3,10 +3,13 @@
 to English, so a partial translation never breaks the app.
 
 """
+import re
 import streamlit as st
+from utils.locale import VOCABULARY, OPTIONS, DIGITS, question_text
+from utils.locale_messages import MESSAGES, PATTERNS
 from utils.dzongkha import DZ
 
-LANGUAGES = {"en": "English", "dz": "རྫོང་ཁ (Dzongkha)"}
+LANGUAGES = {"en": "English", "dz": "རྫོང་ཁ"}
 # Future: "es": "Español", "fr": "Français", "hi": "हिन्दी"
 
 STRINGS = {
@@ -42,10 +45,46 @@ STRINGS = {
 }
 
 
+DZ.update(MESSAGES)
+
 def current_lang():
     return st.session_state.get("lang", "en")
 
 
+def translate(value, lang=None):
+    lang = lang or current_lang()
+    if lang != "dz" or not isinstance(value, str):
+        return value
+    value = value if value in DZ or value in MESSAGES else value.strip()
+    if value in DZ:
+        result = DZ[value]
+    elif value in MESSAGES:
+        result = MESSAGES[value]
+    elif value in VOCABULARY:
+        result = VOCABULARY[value]
+    else:
+        result = value
+        for expression, target in PATTERNS.items():
+            match = re.fullmatch(expression, value, re.DOTALL)
+            if match:
+                result = target.format(*(translate(part, lang) for part in match.groups()))
+                break
+    # Also localize literal schema names embedded in existing Dzongkha instructions.
+    for source in sorted(set(VOCABULARY) - set(OPTIONS), key=len, reverse=True):
+        result = re.sub(r"(?<![A-Za-z])" + re.escape(source) + r"(?![A-Za-z])",
+                        lambda _: VOCABULARY[source], result)
+    result = result.replace("t-test", MESSAGES["t-test"]).replace("z-test", MESSAGES["z-test"])
+    if value.startswith("FD: "):
+        result = value.replace("NFD: ", MESSAGES["NFD"] + "་ ").replace("FD: ", MESSAGES["FD"] + "་ ")
+        for option, letter in OPTIONS.items():
+            result = re.sub(r"\b" + option + r"\b", letter, result)
+    if re.fullmatch(r"[ABCD](?:, [ABCD])*", value):
+        result = ", ".join(OPTIONS[letter] for letter in value.split(", "))
+    result = question_text(result)
+    return result.translate(DIGITS)
+
+
 def t(key, lang=None, *, fallback=None):
     lang = lang or current_lang()
-    return STRINGS.get(lang, {}).get(key) or STRINGS["en"].get(key, fallback if fallback is not None else key)
+    source = STRINGS["en"].get(key, fallback if fallback is not None else key)
+    return translate(key if key in DZ or key in MESSAGES else source, lang) if lang == "dz" else source

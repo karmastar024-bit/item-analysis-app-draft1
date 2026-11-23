@@ -3,6 +3,7 @@ the UI shows errors/warnings and only runs analysis when ok."""
 from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
+from utils.locale import ASCII
 from analysis.scoring import TF_MAP, split_accepted
 
 ID_COL_NAMES = {"studentid", "student_id", "id", "student id", "student"}
@@ -50,7 +51,7 @@ def overall_scores(students):
     names = required_column(NAME_HEADERS, "Name")
     if names.fillna("").astype(str).str.strip().eq("").any():
         raise ValueError("Enter a name for every student in the Name column.")
-    totals = pd.to_numeric(required_column(TOTAL_HEADERS, "Total Score"), errors="coerce")
+    totals = pd.to_numeric(required_column(TOTAL_HEADERS, "Total Score").astype(str).str.translate(ASCII), errors="coerce")
     if not np.isfinite(totals).all():
         raise ValueError("Enter a numeric overall Total Score for every student.")
     return totals.reset_index(drop=True)
@@ -126,7 +127,7 @@ def validate(df: pd.DataFrame, kind: str) -> ValidationResult:
             mx = {}
             for c in items:
                 try:
-                    m = float(key[c])
+                    m = float(str(key[c]).translate(ASCII))
                     if not np.isfinite(m) or m <= 0: raise ValueError
                     mx[c] = m
                 except (TypeError, ValueError):
@@ -147,7 +148,7 @@ def validate(df: pd.DataFrame, kind: str) -> ValidationResult:
                 v.errors.append(f"Item '{c}': accepted answer list is empty.")
 
     if kind == "written":
-        num = resp.apply(pd.to_numeric, errors="coerce")
+        num = resp.apply(lambda col: pd.to_numeric(col.astype(str).str.translate(ASCII), errors="coerce"))
         nonnum = int((num.isna() & resp.notna()).sum().sum())
         if nonnum:
             v.errors.append(f"{nonnum} score(s) are not numbers (use digits, e.g. 7.5).")

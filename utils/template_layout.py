@@ -1,11 +1,13 @@
 """Normalize assessment headers and key rows without changing item values."""
 import pandas as pd
+from utils.locale import normalize_grid
 
 
 def assessment_table(frame):
     """Accept KEY/MAX above the header, as well as legacy rows below it."""
     if frame.empty:
         raise ValueError("The file contains no data.")
+    frame = normalize_grid(frame)
     frame = frame.fillna("").astype(str).apply(lambda col: col.str.strip())
     first = frame.iloc[:, 0].str.casefold()
     headers = frame.index[first.isin(["student id", "studentid", "student_id", "id", "student"])].tolist()

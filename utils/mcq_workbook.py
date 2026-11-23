@@ -7,18 +7,22 @@ import pandas as pd
 
 from item_analyzer import ItemAnalyzer
 from utils.template_layout import assessment_table
+from utils.locale import VOCABULARY, canonical_label, normalize_grid, ASCII
 
 
 def load_mcq_workbook(raw: bytes):
     if not raw or len(raw) > 10 * 1024 * 1024:
         raise ValueError("Upload a non-empty .xlsx workbook smaller than 10 MB.")
     try:
-        frame = pd.read_excel(BytesIO(raw), sheet_name="MCQ", header=None,
+        workbook = pd.ExcelFile(BytesIO(raw), engine="openpyxl")
+        sheet = "MCQ" if "MCQ" in workbook.sheet_names else VOCABULARY["MCQ"]
+        frame = pd.read_excel(workbook, sheet_name=sheet, header=None,
                               dtype=str, keep_default_na=False, engine="openpyxl")
     except Exception as exc:
         raise ValueError("Could not read the workbook. Use the .xlsx template and keep the sheet named MCQ.") from exc
     if frame.empty:
         raise ValueError("The MCQ sheet is empty. Download and fill in the template.")
+    frame = normalize_grid(frame)
     frame = frame.apply(lambda col: col.str.strip())
     headers = frame.index[frame.iloc[:, 0].str.casefold() == "student id"].tolist()
     if len(headers) != 1:
@@ -38,7 +42,7 @@ def load_mcq_workbook(raw: bytes):
     is_key = body["Student ID"].str.upper().eq("KEY")
     if is_key.sum() != 1:
         raise ValueError("Include exactly one answer-key row with KEY in the Student ID column.")
-    key = body.loc[is_key, questions].iloc[0].str.upper()
+    key = body.loc[is_key, questions].iloc[0].map(canonical_label).str.upper()
     if not key.isin(list("ABCD")).all():
         raise ValueError("Every answer-key cell must contain A, B, C, or D.")
     students = body.loc[~is_key].copy()
@@ -48,10 +52,10 @@ def load_mcq_workbook(raw: bytes):
         raise ValueError("Every student row needs a Student ID and Name.")
     if students["Student ID"].str.casefold().duplicated().any():
         raise ValueError("Student IDs must be unique. Check for duplicate student rows.")
-    totals = pd.to_numeric(students["Total Score"], errors="coerce")
+    totals = pd.to_numeric(students["Total Score"].str.translate(ASCII), errors="coerce")
     if not np.isfinite(totals).all() or (totals < 0).any():
         raise ValueError("Every student needs a non-negative numeric Total Score (MCQ + all sections).")
-    responses = students[questions].apply(lambda col: col.str.upper())
+    responses = students[questions].apply(lambda col: col.map(canonical_label).str.upper())
     if not responses.isin(["", "A", "B", "C", "D"]).all().all():
         raise ValueError("Student responses must be A, B, C, D, or blank for an omitted answer.")
     analyzer = ItemAnalyzer()
