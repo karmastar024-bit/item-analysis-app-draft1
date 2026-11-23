@@ -4,9 +4,10 @@ import re
 import string
 import numpy as np
 import pandas as pd
+from utils.locale import canonical_label
 
-TRUE_WORDS = {"t": "T", "true": "T", "1": "T", "yes": "T"}
-FALSE_WORDS = {"f": "F", "false": "F", "0": "F", "no": "F"}
+TRUE_WORDS = {"t": "T", "true": "T", "1": "T", "yes": "T", "བདེན": "T"}
+FALSE_WORDS = {"f": "F", "false": "F", "0": "F", "no": "F", "རྫུན": "F"}
 TF_MAP = {**TRUE_WORDS, **FALSE_WORDS}
 
 
@@ -59,6 +60,8 @@ def score_fill_blank(resp, accepted: dict, ignore_case=True,
 
 
 def score_matching(resp, key: dict, ignore_case=True):
+    resp = resp.apply(lambda col: col.map(canonical_label))
+    key = {c: canonical_label(v) for c, v in key.items()}
     """Each prompt is ONE item worth 1 point: correct iff the chosen
     answer equals the key (case-insensitive by default)."""
     fn = lambda v: normalize_text(v, ignore_case, False, True)

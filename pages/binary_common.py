@@ -1,3 +1,4 @@
+from utils.localized_templates import download_bytes
 """Shared workflow for binary-scored item types (T/F, Fill, Matching) and
 the shared results display (also used by the written-response page)."""
 from utils.translations import t, current_lang
@@ -42,8 +43,7 @@ def render(kind):
     st.caption(t("desc_" + kind, fallback=cfg["help"]))
     with st.expander(t("How is this item type scored?")):
         st.markdown(t("score_binary", fallback=cfg["doc"]))
-        if current_lang() == "en":
-            st.markdown(cfg["de"])
+        st.markdown(t("no_distractor_options", fallback=cfg["de"]))
     sample = (__import__("pathlib").Path(__file__).resolve().parent.parent / "templates" /
               {"tf": "true_false_template.xlsx", "fill": "fill_blank_template.xlsx",
                "matching": "matching_template.xlsx"}[kind])
@@ -52,7 +52,7 @@ def render(kind):
                "Enter each student’s **Student ID**, **Name**, overall **Total Score**, and responses on one row. "
                "The overall score determines the upper and lower groups.")
     if sample.exists():
-        c2.download_button(t("Download Excel template"), sample.read_bytes(), sample.name, width="stretch")
+        c2.download_button(t("Download Excel template"), download_bytes(sample), sample.name, width="stretch")
 
     up = st.file_uploader(t("Upload .csv or .xlsx"), label_visibility="collapsed", type=["csv", "xlsx"], key=f"up_{kind}")
     if up is None:
@@ -60,12 +60,12 @@ def render(kind):
     try:
         df = read_upload(up)
     except ValueError as e:
-        st.error(f"❌ {e}"); return
+        st.error(t(str(e))); return
     v = validate(df, kind)
-    for w in v.warnings: st.warning("⚠️ " + w)
+    for w in v.warnings: st.warning(t(w))
     if not v.ok:
         for e in v.errors: st.error(t(e))
-        st.caption("Fix the problems above and upload the file again."); return
+        st.caption(t("Fix the problems above and upload the file again.")); return
     st.success(t("checked", fallback="File checked: {students} students, {items} items.").format(**v.info))
 
     sig = _sig(up)
@@ -75,9 +75,9 @@ def render(kind):
     key = v.key
     if st.button(t("▶ Run analysis"), type="primary", key=f"run_{kind}"):
         if any(not k.strip() for k in key.values()):
-            st.error("❌ Every item needs an answer in the key."); return
+            st.error(t("Every item needs an answer in the key.")); return
         try:
-            with st.spinner("Analysing…"):
+            with st.spinner(t("Analysing…")):
                 resp = v.responses
                 if kind == "tf": sc = scoring.score_true_false(resp, key)
                 elif kind == "fill":
@@ -88,8 +88,8 @@ def render(kind):
                 report = section_results(out, sc.sum(axis=1), cfg["title"])
             st.session_state[res_key] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
         except Exception:
-            st.error("❌ The analysis could not be completed. Please check your file and answer key "
-                     "against the Data Format Guide."); return
+            st.error(t("The analysis could not be completed. Please check your file and answer key "
+                     "against the Data Format Guide.")); return
     r = st.session_state.get(res_key)
     if r:
         show_section(r, f"{kind}_item_analysis.pdf")

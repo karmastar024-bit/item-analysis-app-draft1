@@ -1,3 +1,4 @@
+from utils.localized_templates import download_bytes
 """Information pages reached from the menu."""
 from pathlib import Path
 import streamlit as st
@@ -44,44 +45,28 @@ a box plot and summary statistics. You can also compare the class mean with a ta
 
 def item_guide():
     st.header(t("guide"))
-    if current_lang() == "dz":
-        st.markdown(t("guide_summary"))
-        with st.expander(t("Reference in English")):
-            ex.render_stat_tabs()
-    else:
-        ex.render_stat_tabs()
+    ex.render_stat_tabs()
 
 
 def decision_rules():
     st.header(t("rules"))
-    if current_lang() == "dz":
-        st.markdown(t("rules_summary"))
-        with st.expander(t("Reference in English")):
-            ex.render_rule_tabs()
-    else:
-        ex.render_rule_tabs()
+    ex.render_rule_tabs()
 
 
 def statistical_tests_guide():
     st.header(t("stat_tests"))
-    if current_lang() == "dz":
-        st.write(t("test_compare"))
-        st.info(t("known_sd"))
     for k, (ltx, txt) in ex.TESTS.items():
-        with st.expander(t(k), expanded=False):
-            st.latex(ltx); st.write(txt)
-    st.info(ex.ASSUMPTIONS)
-    if st.button(t("Open Test Distribution"), type="primary"): go("statistics")
+        with st.expander(t(k)):
+            st.latex(ltx)
+            st.write(t(txt))
+    st.info(t(ex.ASSUMPTIONS))
+    if st.button(t("Open Test Distribution"), type="primary"):
+        go("statistics")
 
 
 def methodology():
     st.header(t("methodology"))
-    if current_lang() == "dz":
-        st.markdown(t("Results note"))
-        with st.expander(t("Reference in English")):
-            ex.render_methodology()
-    else:
-        ex.render_methodology()
+    ex.render_methodology()
 
 
 def data_format():
@@ -133,12 +118,12 @@ def sample_data():
              ("Written / Essay – sample data", DATA / "sample_written.csv")]
     for label, p in files:
         if p.exists():
-            st.download_button(label, p.read_bytes(), p.name, key=f"dl_{p.name}")
+            st.download_button(t(label), download_bytes(p), p.name, key=f"dl_{p.name}")
 
 
 def contact():
     st.header(t("contact"))
-    st.write(f"**Karma Dorji** · [{EMAIL}](mailto:{EMAIL})")
+    st.write(f"**{t('Karma Dorji')}** · [{EMAIL}](mailto:{EMAIL})")
 
 
 def feedback():

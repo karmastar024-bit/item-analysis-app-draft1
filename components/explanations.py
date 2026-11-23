@@ -1,5 +1,7 @@
 """All teaching content in one place (so it can be translated later)."""
 import streamlit as st
+from utils.translations import t, current_lang, translate
+from utils import teaching_dz
 
 STAT_INFO = {
  "Difficulty Index (p)": dict(
@@ -52,24 +54,28 @@ RULES_NOTE = ("Recommendations use unrounded values. Check the answer key, what 
 
 
 def render_stat_tabs():
-    tabs = st.tabs(list(STAT_INFO))
+    tabs = st.tabs([t(k) for k in STAT_INFO])
     for tab, (name, d) in zip(tabs, STAT_INFO.items()):
         with tab:
-            st.markdown(f"**What it measures.** {d['measures']}")
-            st.markdown(f"**Why it matters.** {d['why']}")
-            st.latex(d["latex"])
-            st.caption(d["variables"])
-            st.markdown(f"**How to interpret.** {d['interp']}")
-            st.markdown(f"**Worked example.** {d['example']}")
-            (st.warning if name.startswith("Distractor") else st.info)(f"**Appropriate item types:** {d['types']}")
+            st.markdown(f"**{t('What it measures.')}** {t(d['measures'])}")
+            st.markdown(f"**{t('Why it matters.')}** {t(d['why'])}")
+            st.latex(d["latex"] if current_lang() == "en" else {
+                "Difficulty Index (p)": r"p=R/N,\quad p=\bar{X}/X_{max}",
+                "Discrimination Index (D)": r"D=(U-L)/g,\quad D=(\bar{X}_U-\bar{X}_L)/X_{max}",
+                "Distractor Efficiency (DE)": r"DE=FD/(FD+NFD)\times100\%",
+            }[name])
+            st.caption(t(d["variables"]))
+            st.markdown(f"**{t('How to interpret.')}** {t(d['interp'])}")
+            st.markdown(f"**{t('Worked example.')}** {t(d['example'])}")
+            (st.warning if name.startswith("Distractor") else st.info)(f"**{t('Appropriate item types:')}** {t(d['types'])}")
 
 
 def render_rule_tabs():
-    tabs = st.tabs(list(RULES))
+    tabs = st.tabs([t(k) for k in RULES])
     for tab, (name, body) in zip(tabs, RULES.items()):
         with tab:
-            st.markdown(body)
-    st.caption(RULES_NOTE)
+            st.markdown(t(body))
+    st.caption(t(RULES_NOTE))
 
 
 METHOD = {
@@ -104,16 +110,31 @@ ASSUMPTIONS = ("**Decision rule:** reject H₀ when p-value < α (default 0.05).
 
 
 def render_methodology():
-    st.subheader("Item statistics")
+    st.subheader(t("Item statistics"))
     render_stat_tabs()
-    st.subheader("Decision rules")
+    st.subheader(t("Decision rules"))
     render_rule_tabs()
-    st.subheader("How items are scored and analysed")
+    st.subheader(t("How items are scored and analysed"))
     for k, v in METHOD.items():
-        with st.expander(k, expanded=False):
-            st.write(v)
-    st.subheader("Inferential tests")
+        with st.expander(t(k), expanded=False):
+            st.write(t(v))
+    st.subheader(t("Inferential tests"))
     for k, (ltx, txt) in TESTS.items():
-        with st.expander(k):
-            st.latex(ltx); st.write(txt)
-    st.info(ASSUMPTIONS)
+        with st.expander(t(k)):
+            st.latex(ltx); st.write(t(txt))
+    st.info(t(ASSUMPTIONS))
+
+# Register the matching paragraphs, retaining the English source as the lookup key.
+from utils.dzongkha import DZ
+DZ.update(teaching_dz.LABELS)
+for name, paragraphs in teaching_dz.STAT_INFO.items():
+    for field, paragraph in zip(("measures", "why", "variables", "interp", "example", "types"), paragraphs):
+        DZ[STAT_INFO[name][field]] = paragraph
+for original, paragraph in zip(METHOD.values(), teaching_dz.METHOD):
+    DZ[original] = paragraph
+for (_, original), paragraph in zip(TESTS.values(), teaching_dz.TESTS):
+    DZ[original] = paragraph
+DZ[ASSUMPTIONS] = teaching_dz.ASSUMPTIONS
+DZ[RULES_NOTE] = teaching_dz.RULES_NOTE
+for key, original in RULES.items():
+    DZ[original] = DZ["rules_summary"] + ("\nDE = 0% ཨིན་ན་དྲི་བ་ཕྱིར་བཏོན་འབད།" if key == "MCQ" else "")

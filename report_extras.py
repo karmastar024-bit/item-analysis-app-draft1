@@ -6,19 +6,28 @@ Extra reporting features for the Item Analysis app:
 """
 
 import math
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from pathlib import Path
+from threading import RLock
+from utils.translations import translate, current_lang
+from utils.dzongkha import decision_reason
+from utils.locale import cardinal, DIGITS
 from io import BytesIO
 from statistics import median
 from xml.sax.saxutils import escape
+from html import unescape
 
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     Paragraph,
+    PageBreak,
+    Image,
     SimpleDocTemplate,
     Spacer,
     Table,
@@ -144,11 +153,29 @@ _REC_COLORS = {
 }
 
 
+_FONT_LOCK = RLock()
+
+
+def report_date():
+    today = datetime.now(ZoneInfo("Asia/Thimphu"))
+    if current_lang() == "dz":
+        return f"{today.year} ལོའི་སྤྱི་ཟླ་{cardinal(today.month)}་པའི་ཚེས་{today.day}".translate(DIGITS)
+    return today.strftime("%d %B %Y")
+
+
+def _paragraph(value, style):
+    if current_lang() == "dz":
+        value = escape(translate(decision_reason(unescape(value))))
+        # Tibetan syllable boundaries permit wrapping in narrow report columns.
+        value = value.replace("་", "་\u200b")
+    return Paragraph(value, style)
+
+
 def _styles():
 
     base = getSampleStyleSheet()
 
-    return {
+    styles = {
         "title": ParagraphStyle(
             "ReportTitle",
             parent=base["Title"],
@@ -187,9 +214,28 @@ def _styles():
         ),
     }
 
+    if current_lang() == "dz":
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        with _FONT_LOCK:
+            if "IA Tibetan" not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont("IA Tibetan", str(Path(__file__).parent / "assets/ResultTibetan.ttf")))
+        for style in styles.values():
+            style.fontName = "IA Tibetan"
+            style.shaping = True
+            style.leading = style.fontSize * 1.85
+    return styles
+
 
 def _table(data, col_widths, header=True, align_center_from=0):
 
+    if current_lang() == "dz":
+        styles = _styles()
+        heading = ParagraphStyle("TableHead", parent=styles["body"], textColor=colors.white,
+                                  alignment=1, fontSize=9, leading=18)
+        data = [[cell if isinstance(cell, Paragraph) else
+                 _paragraph(escape(str(cell)).replace("\n", " "), heading if header and i == 0 else styles["body"])
+                 for cell in row] for i, row in enumerate(data)]
     table = Table(data, colWidths=col_widths, repeatRows=1 if header else 0)
 
     style = [
@@ -221,6 +267,8 @@ def _table(data, col_widths, header=True, align_center_from=0):
 
 def _distribution_chart(dist, width, height=170, xlabel="Score (number of correct answers)"):
 
+    if current_lang() == "dz":
+        return _dz_distribution_chart(dist, width, height, xlabel)
     drawing = Drawing(width, height)
 
     labels = [label for label, _ in dist["bins"]]
@@ -263,6 +311,38 @@ def _distribution_chart(dist, width, height=170, xlabel="Score (number of correc
     return drawing
 
 
+def _dz_distribution_chart(dist, width, height, xlabel):
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.font_manager import FontProperties
+    from utils.shaped_text import shape_artist
+
+    with _FONT_LOCK:
+        font = Path(__file__).parent / "assets/ResultTibetan.ttf"
+        figure = Figure(figsize=(width / 72, height / 72), dpi=180)
+        FigureCanvasAgg(figure)
+        ax = figure.add_axes([.08, .28, .88, .66])
+        labels, counts = zip(*dist["bins"])
+        ax.bar(range(len(labels)), counts, color="#3B6EA8", width=.8)
+        ax.set_xticks(range(len(labels)), [translate(str(label)) for label in labels])
+        ax.set_xlabel(translate(xlabel), fontproperties=FontProperties(fname=font, size=9), labelpad=8)
+        ax.set_ylabel(translate("Students"), fontproperties=FontProperties(fname=font, size=9), labelpad=8)
+        from matplotlib.ticker import MaxNLocator, FuncFormatter
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: translate(f"{x:g}")))
+        ax.tick_params(labelsize=7)
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.grid(axis="y", alpha=.2)
+        ax.set_axisbelow(True)
+        for artist in [ax.xaxis.label, ax.yaxis.label, *ax.get_xticklabels(), *ax.get_yticklabels()]:
+            artist.set_fontproperties(FontProperties(fname=font, size=artist.get_fontsize()))
+            shape_artist(artist, font)
+        output = BytesIO()
+        figure.savefig(output, format="png", dpi=180, facecolor="white")
+    output.seek(0)
+    return Image(output, width=width, height=height)
+
+
 def distractor_groups(item):
     """Return functional and non-functional incorrect options in answer order."""
     functional, nonfunctional = [], []
@@ -276,19 +356,20 @@ def distractor_groups(item):
 def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_items=None):
     """Build the shared item report with an efficiency column for multiple choice."""
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=15*mm, rightMargin=15*mm,
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4) if current_lang() == "dz" else A4, leftMargin=15*mm, rightMargin=15*mm,
                             topMargin=14*mm, bottomMargin=15*mm, title=f"{title} · Item analysis")
     width = doc.width - 12
     styles = _styles()
-    story = [Paragraph("Item Analysis Report", styles["title"]),
-             Paragraph(f"{escape(title)} · {date.today():%d %B %Y}", styles["subtitle"]),
-             Paragraph("Class results", styles["h2"])]
+    story = [_paragraph("Item Analysis Report", styles["title"]),
+             _paragraph(f"{escape(translate(title))} · {report_date()}", styles["subtitle"]),
+             _paragraph("Class results", styles["h2"])]
     for row in (metrics[:3], metrics[3:]):
         story.append(_table([[label for label, value in row], [value for label, value in row]],
                             [width/3]*3))
-    story.extend([Paragraph("Score distribution", styles["h2"]),
+    story.extend([_paragraph("Score distribution", styles["h2"]),
                   _distribution_chart({"bins": bins}, width, xlabel=score_label),
-                  Paragraph("Item-by-item analysis", styles["h2"]), Paragraph(note, styles["note"])])
+                  *([PageBreak()] if current_lang() == "dz" else []),
+                  _paragraph("Item-by-item analysis", styles["h2"]), _paragraph(note, styles["note"])])
     mcq = mcq_items is not None
     breakdown = [["Question", "Key", "Functional distractors", "Non-functional distractors"]]
     if mcq:
@@ -307,7 +388,7 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_it
                 ", ".join(o["option"] for o in group) or "None" for group in groups
             ]
             breakdown.append([item["question"], item["correct_answer"], *[
-                "\n".join(f"{o['option']}   {o['count']} ({o['percentage']:g}%)" for o in group)
+                "\n".join(f"{translate(o['option'])}   {translate(str(o['count']))} ({translate(f"{o['percentage']:g}")}%)" for o in group)
                 or "None" for group in groups
             ]])
         names = ["Functional distractors", "Non-functional distractors"]
@@ -315,13 +396,13 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_it
         columns.extend(names)
         headers.extend(["DE (%)", "Functional\ndistractors", "Non-functional\ndistractors"])
         widths = [.10, .085, .085, .075, .11, .14]
-        story.append(Paragraph("DE = distractor efficiency.", styles["note"]))
+        story.append(_paragraph("DE = distractor efficiency.", styles["note"]))
     decision_col = len(headers)
     rows = [headers + ["Decision", "Reason"]]
     for item in frame[columns + ["Recommendation", "Why"]].itertuples(index=False, name=None):
         label, p, d, *efficiency, decision, reason = item
-        rows.append([Paragraph(escape(str(label)), styles["body"]), f"{p:.2f}", f"{d:.2f}",
-                     *efficiency, decision, Paragraph(escape(str(reason)), styles["body"])])
+        rows.append([_paragraph(escape(str(label)), styles["body"]), f"{p:.2f}", f"{d:.2f}",
+                     *efficiency, decision, _paragraph(escape(str(reason)), styles["body"])])
     widths.extend([.16, 1 - sum(widths) - .16])
     table = _table(rows, [width * fraction for fraction in widths])
     for i, row in enumerate(rows[1:], 1):
@@ -330,8 +411,9 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_it
                                    ("FONTNAME", cell, cell, "Helvetica-Bold")]))
     story.append(table)
     if mcq:
-        story.extend([Paragraph("Distractors by question", styles["h2"]),
-                      Paragraph("Each option shows its selection count and percentage of all students. "
+        story.extend([*([PageBreak()] if current_lang() == "dz" else []),
+                      _paragraph("Distractors by question", styles["h2"]),
+                      _paragraph("Each option shows its selection count and percentage of all students. "
                                 "An incorrect option selected by at least 5% of students is functional. "
                                 "Below 5%, it is a non-functional distractor (NFD).", styles["body"]),
                       Spacer(1, 6), _table(breakdown, [width*f for f in (.17, .09, .37, .37)])])
@@ -360,17 +442,17 @@ def create_distribution_pdf(result, bins):
     rows.extend([["p-value", f"{p:.4f}" if p >= .0001 else "< 0.0001"],
                  ["Significance level", f"{result['alpha']:g}"],
                  [f"{100*(1-result['alpha']):g}% two-sided confidence interval for the mean",
-                  f"{lo:.3f} to {hi:.3f}"]])
-    story = [Paragraph("Test Distribution", styles["title"]),
-             Paragraph(f"Class assessment report · {date.today():%d %B %Y}", styles["subtitle"]),
-             Paragraph("Score distribution", styles["h2"]),
-             Paragraph(f"{details['n']} students · Mean overall score {details['mean']:.2f}. "
+                  f"{lo:.3f} – {hi:.3f}"]])
+    story = [_paragraph("Test Distribution", styles["title"]),
+             _paragraph(f"{translate('Class assessment report')} · {report_date()}", styles["subtitle"]),
+             _paragraph("Score distribution", styles["h2"]),
+             _paragraph(f"{details['n']} students · Mean overall score {details['mean']:.2f}. "
                        "Each bar shows the number of students.", styles["body"]),
              _distribution_chart({"bins": bins}, width, xlabel="Overall test score"),
-             Paragraph(result["name"], styles["h2"]), _table(rows, [width*.54, width*.46]),
-             Paragraph(result["decision"], styles["h2"]),
-             Paragraph(escape(result["interpretation"].replace("α", "alpha")), styles["body"])]
+             _paragraph(result["name"], styles["h2"]), _table(rows, [width*.54, width*.46]),
+             _paragraph(result["decision"], styles["h2"]),
+             _paragraph(escape(result["interpretation"].replace("α", "alpha")), styles["body"])]
     for warning in result["warnings"]:
-        story.extend([Spacer(1, 6), Paragraph(escape(warning), styles["note"])])
+        story.extend([Spacer(1, 6), _paragraph(escape(warning), styles["note"])])
     doc.build(story)
     return buffer.getvalue()

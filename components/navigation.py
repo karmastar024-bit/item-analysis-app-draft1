@@ -3,7 +3,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
-from utils.translations import t, LANGUAGES
+from utils.translations import t, LANGUAGES, current_lang
+import json
 
 PAGES = {}   # filled by app.py: key -> st.Page
 
@@ -32,6 +33,8 @@ def _select_language(code):
 def header():
     st.html(ASSETS / "theme.css")
     st.html(tibetan_font_style())
+    script = (ASSETS / "native_locale.js").read_text().replace("__LANGUAGE__", json.dumps(current_lang()))
+    st.html("<script>" + script + "</script>", unsafe_allow_javascript=True)
     
     artwork = ASSETS.parent / "static"
     with st.container(key="valley_art"):
@@ -44,7 +47,7 @@ def header():
             with st.popover(t("language"), icon=":material/language:"):
                 for code, name in LANGUAGES.items():
                     active = code == st.session_state.get("lang", "en")
-                    st.button(name, key=f"language_{code}", width="stretch",
+                    st.button(t(name), key=f"language_{code}", width="stretch",
                               icon=":material/check:" if active else None,
                               on_click=_select_language, args=(code,))
             with st.popover(t("menu"), icon=":material/menu:"):

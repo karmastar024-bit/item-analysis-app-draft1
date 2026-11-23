@@ -1,6 +1,6 @@
 """Altair charts for the UI + matplotlib PNGs for the PDF report."""
 from io import BytesIO
-from utils.translations import t
+from utils.translations import t, translate, current_lang
 import altair as alt
 import numpy as np
 import pandas as pd
@@ -72,33 +72,59 @@ def score_bins(scores):
 
 
 def glass_chart(chart):
+    digits = "datum.label"
+    if current_lang() == "dz":
+        for a, b in zip("0123456789", "༠༡༢༣༤༥༦༧༨༩"):
+            digits = f"replace({digits}, /{a}/g, '{b}')"
     return (chart.properties(width="container", height=260, background="transparent",
                              autosize=alt.AutoSizeParams(type="fit", contains="padding", resize=True),
                              padding={"left": 12, "right": 16, "top": 14, "bottom": 12})
             .configure_view(stroke=None)
-            .configure_axis(labelColor="#e6efef", titleColor="#fff3da", gridColor="#647889",
+            .configure_axis(labelExpr=digits, labelColor="#e6efef", titleColor="#fff3da", gridColor="#647889",
                             gridOpacity=.34, titlePadding=8, domainColor="#859da7", labelFontSize=12,
                             titleFontSize=13, labelFont="IA Tibetan, sans-serif", titleFont="IA Tibetan, sans-serif"))
 
 
 def score_bars(bins, score_label):
-    chart = alt.Chart(pd.DataFrame(bins, columns=["Score", "Students"])).mark_bar(
+    frame = pd.DataFrame(bins, columns=["Score", "Students"])
+    frame["DisplayScore"] = frame["Score"].map(lambda value: translate(str(value)))
+    frame["DisplayStudents"] = frame["Students"].map(lambda value: translate(str(value)))
+    chart = alt.Chart(frame).mark_bar(
         color="#89d8cb", cornerRadiusTopLeft=4, cornerRadiusTopRight=4
     ).encode(
         x=alt.X("Score:N", sort=None, title=t(score_label), axis=alt.Axis(labelAngle=0, labelOverlap="greedy")),
         y=alt.Y("Students:Q", title=t("Students"), axis=alt.Axis(tickMinStep=1)),
-        tooltip=[alt.Tooltip("Score:N", title=t("Score")), alt.Tooltip("Students:Q", title=t("Students"))]
+        tooltip=[alt.Tooltip("DisplayScore:N", title=t("Score")), alt.Tooltip("DisplayStudents:N", title=t("Students"))]
     )
     return glass_chart(chart)
 
 
 def boxplot(values):
-    frame = pd.DataFrame({"score": values})
-    chart = alt.Chart(frame).mark_boxplot(
-        extent=1.5, size=44, box={"fill": "#89d8cb"}, median={"color": "#102936"},
-        rule={"color": "#d1e3e1"}, ticks={"color": "#d1e3e1", "size": 28}, outliers={"color": "#edc581"}
-    ).encode(y=alt.Y("score:Q", title=t("Overall test score"), scale=alt.Scale(zero=False)))
-    return glass_chart(chart)
+    scores = np.asarray(values, dtype=float)
+    q1, median, q3 = np.quantile(scores, [.25, .5, .75])
+    iqr = q3 - q1
+    inside = scores[(scores >= q1 - 1.5 * iqr) & (scores <= q3 + 1.5 * iqr)]
+    low, high = inside.min(), inside.max()
+    summary = pd.DataFrame([{"low": low, "q1": q1, "median": median, "q3": q3, "high": high}])
+    labels = {"low": "Lower whisker", "q1": "Lower quartile (Q1)", "median": "Median",
+              "q3": "Upper quartile (Q3)", "high": "Upper whisker"}
+    for key in labels:
+        summary[key + "_label"] = translate(f"{summary[key].iloc[0]:g}")
+    tooltips = [alt.Tooltip(key + "_label:N", title=t(label)) for key, label in labels.items()]
+    base = alt.Chart(summary).encode(x=alt.X(datum=0, axis=None, scale=alt.Scale(domain=[-1, 1])))
+    y = alt.Y("low:Q", title=t("Overall test score"), scale=alt.Scale(zero=False))
+    whisker = base.mark_rule(color="#d1e3e1").encode(y=y, y2="high:Q")
+    box = base.mark_bar(size=44, color="#89d8cb").encode(
+        y=alt.Y("q1:Q", title=t("Overall test score"), scale=alt.Scale(zero=False)),
+        y2="q3:Q", tooltip=tooltips)
+    mid = base.mark_tick(size=44, color="#102936", thickness=1).encode(y="median:Q")
+    caps = alt.Chart(pd.DataFrame({"score": [low, high]})).mark_tick(size=28, color="#d1e3e1").encode(
+        x=alt.X(datum=0, axis=None), y="score:Q")
+    outliers = scores[(scores < low) | (scores > high)]
+    frame = pd.DataFrame({"score": outliers, "label": [translate(f"{v:g}") for v in outliers]})
+    points = alt.Chart(frame).mark_point(color="#edc581").encode(
+        x=alt.X(datum=0, axis=None), y="score:Q", tooltip=alt.Tooltip("label:N", title=t("Score")))
+    return glass_chart(whisker + box + mid + caps + points)
 
 
 def grouped_boxplot(groups: dict, title="Box plot by group"):

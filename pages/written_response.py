@@ -1,3 +1,4 @@
+from utils.localized_templates import download_bytes
 from utils.translations import t
 import hashlib
 from pathlib import Path
@@ -23,16 +24,16 @@ def render():
                "**Student ID**, **Name**, overall **Total Score**, and marks for each question. "
                "The overall score determines the upper and lower groups."))
     if SAMPLE.exists():
-        c2.download_button(t("Download Excel template"), SAMPLE.read_bytes(), SAMPLE.name, width="stretch")
+        c2.download_button(t("Download Excel template"), download_bytes(SAMPLE), SAMPLE.name, width="stretch")
     up = st.file_uploader(t("Upload .csv or .xlsx"), label_visibility="collapsed", type=["csv", "xlsx"], key="up_written")
     if up is None:
         return
     try:
         df = read_upload(up)
     except ValueError as e:
-        st.error(f"❌ {e}"); return
+        st.error(t(str(e))); return
     v = validate(df, "written")
-    for w in v.warnings: st.warning("⚠️ " + w)
+    for w in v.warnings: st.warning(t(w))
     if not v.ok:
         for e in v.errors: st.error(t(e))
         return
@@ -49,7 +50,7 @@ def render():
             report = section_results(out, v.responses.fillna(0).sum(axis=1), "Written response")
             st.session_state["res_written"] = dict(sig=sig, df=out, totals=totals.tolist(), **report)
         except Exception:
-            st.error("❌ The analysis could not be completed. Check your file against the Data Format Guide."); return
+            st.error(t("The analysis could not be completed. Check your file against the Data Format Guide.")); return
     r = st.session_state.get("res_written")
     if r:
         show_section(r, "written_item_analysis.pdf")

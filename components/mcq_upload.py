@@ -1,3 +1,4 @@
+from utils.localized_templates import download_bytes
 """MCQ upload workflow, using the shared item-page layout."""
 import hashlib
 from pathlib import Path
@@ -23,12 +24,12 @@ def render_upload(sanitize):
     c1.caption(t("setup_mcq") + " " + t("setup_students") if current_lang() == "dz" else "Start with the Excel template. On the **MCQ** sheet, enter the correct answers "
                "in the gold **KEY** row above Q1, Q2, and so on. For each student, enter their "
                "**Student ID**, **Name**, overall **Total Score**, and response to each MCQ.")
-    c2.download_button(t("Download Excel template"), TEMPLATE.read_bytes(), "MCQ_Template.xlsx",
+    c2.download_button(t("Download Excel template"), download_bytes(TEMPLATE), "MCQ_Template.xlsx",
                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                        key="mcq_combined_template", width="stretch")
 
     uploaded = st.file_uploader(t("Upload .xlsx"), label_visibility="collapsed", type=["xlsx"], key="mcq_combined_upload",
-                                help="One completed MCQ workbook, up to 10 MB.")
+                                help=t("One completed MCQ workbook, up to 10 MB."))
     sig = hashlib.sha256(uploaded.getvalue()).hexdigest() if uploaded else None
     if st.session_state.get("mcq_workbook_signature") != sig:
         st.session_state.pop("analysis_results", None)
@@ -40,13 +41,13 @@ def render_upload(sanitize):
     if st.button(t("▶ Run analysis"), type="primary", key="run_mcq"):
         st.session_state.pop("analysis_results", None)
         try:
-            with st.spinner("Checking workbook and analysing responses…"):
+            with st.spinner(t("Checking workbook and analysing responses…")):
                 if not uploaded.name.lower().endswith(".xlsx"):
                     raise ValueError("Only .xlsx workbooks are accepted.")
                 results = sanitize(analyze_mcq_workbook(uploaded.getvalue()))
                 st.session_state["analysis_results"] = results
             st.success(t("analysis_done", fallback="Analysis complete. Your results are below."))
             if results["summary"]["total_students"] < 30:
-                st.warning("Fewer than 30 students: treat item decisions as indicative.")
+                st.warning(t("Fewer than 30 students: treat item decisions as indicative."))
         except ValueError as exc:
             st.error(t(str(exc)))
