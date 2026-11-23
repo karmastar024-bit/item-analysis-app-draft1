@@ -1,4 +1,4 @@
-"""Dzongkha interface copy. Workbook column names and statistical symbols stay literal."""
+"""Dzongkha interface copy. Statistical symbols retain their mathematical meaning."""
 DZ = {
     "app_title": "དྲི་བ་དབྱེ་ཞིབ།", "subtitle": "འབྲུག་གི་སློབ་ཁང་ནང་གི་དབྱེ་ཞིབ།",
     "language": "སྐད་ཡིག", "menu": "དཀར་ཆག", "home": "མདུན་ཤོག",

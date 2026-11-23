@@ -424,7 +424,7 @@ def create_section_pdf(title, metrics, bins, frame, note, score_label, *, mcq_it
 def create_distribution_pdf(result, bins):
     """Print the displayed score frequencies and the completed one-sample test."""
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, title="Test Distribution",
+    doc = SimpleDocTemplate(buffer, pagesize=A4, title=translate("Test Distribution"),
                             leftMargin=18*mm, rightMargin=18*mm)
     width = doc.width - 12
     styles = _styles()

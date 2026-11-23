@@ -1,5 +1,7 @@
 """Complete messages for workbook instructions, reports and upload feedback."""
 MESSAGES = {
+"No repeated value": "ཡང་བསྐྱར་འབྱུང་མི་གནས་གོང་མེད།",
+"No numeric scores found.": "ཨང་ཡིག་གི་སྐུགས་མ་ཐོབ།",
 "mcq": "གདམ་ཁ་ཅན་གྱི་དྲི་བ",
 "Multiple choice": "གདམ་ཁ་ཅན་གྱི་དྲི་བ",
 "Answer key": "དྲི་བའི་ལན",
